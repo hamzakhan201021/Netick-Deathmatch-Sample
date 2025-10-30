@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 2061283162, guid: da78c2c9df60edc4fb5f65b59fa57c41, type: 3}
+  m_Name: netickConfig
+  m_EditorClassIdentifier: 
+  Prefabs:
+  - {fileID: 5100633453439203130, guid: 4a8623ea07553dc4788e8d53a2ea8ff6, type: 3}
+  - {fileID: 5100633453439203130, guid: 22af5a9875708ef46b2bb14486ce13c5, type: 3}
+  - {fileID: 8610621968303838441, guid: ce66c3bed3999424ca708d7c3a1c0fb3, type: 3}
+  - {fileID: 8610621968303838441, guid: c3235fc3e58834cb1bff74f599ca5ee1, type: 3}
+  - {fileID: 7496519766066448538, guid: 086a306bf45c746548ab0f46e52af698, type: 3}
+  - {fileID: 5954839622145660592, guid: 28f0492474c344d8ebce338e5d9916a2, type: 3}
+  - {fileID: 1234762313006570063, guid: 56ef2673107b340beaa318c4cfe7c792, type: 3}
+  - {fileID: 5100633453439203130, guid: d66d5a97430d3364890108321123b309, type: 3}
+  AutoGetPrefabs: 1
+  PrefabsPath: Assets/
+  TickRate: 60
+  MaxAllowedTimestep: 0.2
+  MaxPlayers: 16
+  MaxObjects: 512
+  MaxSendableDataSize: 15000
+  StateAllocatorBlockSize: 131072
+  MetaAllocatorBlockSize: 1048576
+  AggressivePreAllocation: 0
+  MaxPredictedTicks: 512
+  ServerDivisor: 1
+  PhysicsPrediction: 0
+  PhysicsType: 1
+  InvokeRenderInHeadless: 0
+  InvokeUpdate: 1
+  RenderInvokeOrder: 1
+  MaxAdditiveScenes: 4
+  InputReuseOnLowFPS: 1
+  ExtraInterpolationDelay: 0
+  AccurateLocalInterpolation: 0
+  EnableMultithreading: 0
+  EnableLogging: 1
+  EnableProfiling: 0
+  EnableLagCompensation: 0
+  EnableInterestManagement: 0
+  EnableNarrowphaseFiltering: 0
+  CustomGroupCount: 2
+  AoILayerCount: 1
+  WorldSize: {x: 8000, y: 1, z: 8000}
+  FastSerialization: 1
+  SyncTransformOnSpawn: 1
+  IncludeInactiveObjects: 0
+  EnableReplay: 0
+  ReplayRecordOnStartup: 1
+  ReplayKeyframeInterval: 3
+  ReplayFileSignature: 1380274252
+  ReplayFileExtension: nreplay
+  AoILayer0CellSize: 750
+  AoILayer1CellSize: 750
+  AoILayer2CellSize: 750
+  AoILayer3CellSize: 750
+  AoILayer4CellSize: 750
+  RenderWorldGrid: 0
+  RenderedLayer: 0
+  LagCompensationDebug: 1

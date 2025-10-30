@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a72da6955e45e3745bf353b78e5f5483, type: 3}
+  m_Name: UnityTransportProvider
+  m_EditorClassIdentifier: 
+  _clientProtocol: 3
+  _serverProtocol: 8
+  _parameters:
+    connectTimeoutMS: 1000
+    maxConnectAttempts: 60
+    disconnectTimeoutMS: 30000
+    heartbeatTimeoutMS: 500
+    reconnectionTimeoutMS: 2000
+    maxFrameTimeMS: 0
+    fixedFrameTimeMS: 0
+    receiveQueueCapacity: 512
+    sendQueueCapacity: 512
+    maxMessageSize: 1400
+    performPathMtuDiscovery: 0
+  _useEncryption: 0
+  _serverCertificate: 
+  _serverPrivateKey: 
+  _serverCommonName: 
+  _clientCaCertificate: 

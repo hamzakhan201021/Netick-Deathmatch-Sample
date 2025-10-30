@@ -1,0 +1,16 @@
+using Netick.Unity;
+using Netick;
+
+public class #SCRIPTNAME# : NetworkBehaviour
+{
+#NOTRIM#
+    public override void NetworkStart()
+    {
+        #NOTRIM#
+    }
+
+    public override void NetworkFixedUpdate()
+    {
+        #NOTRIM#
+    }
+}

@@ -1,0 +1,7 @@
+using Netick.Unity;
+using Netick;
+
+public class #SCRIPTNAME# : NetickBehaviour
+{
+#NOTRIM#
+}
