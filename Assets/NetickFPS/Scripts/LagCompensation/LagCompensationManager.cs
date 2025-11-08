@@ -3,7 +3,6 @@ using Netick.Unity;
 using System.Collections.Generic;
 using Netick;
 using PG.LagCompensation;
-using System.Collections;
 
 // TODO use namespace, cleanup .. ..
 public class LagCompensationManager : NetworkBehaviour
@@ -32,11 +31,13 @@ public class LagCompensationManager : NetworkBehaviour
         public bool GetStateAtOrBefore(int targetTick, out Collider3DState state)
         {
             state = default;
+
             if (States.Count == 0) return false;
+
             var arr = States.ToArray();
+
             for (int i = arr.Length - 1; i >= 0; i--)
             {
-                // TODO make sure it works
                 if (arr[i].Tick == targetTick)
                 {
                     state = arr[i];
@@ -451,6 +452,7 @@ public class LagCompensationManager : NetworkBehaviour
         // For some reason tick - 1 gives the least error idk and not sure why XD
         // but who cares if it's the best just using it for now, if you know something better don't hesitate to let me know.
         int simTick = tick - 1;
+        //int simTick = tick;
 
         ColliderCastSystem.Simulate(simTick);
 
@@ -463,6 +465,8 @@ public class LagCompensationManager : NetworkBehaviour
 
             HitColliderGeneric hitCol = hitCollection.GetHitColliderAtIndex(index);
 
+
+
             SendClientHitObjectDataRpc(hitCol.GetCachedTRSData().position, hitCol.GetCachedTRSData().rotation, true, tick);
 
 
@@ -472,7 +476,11 @@ public class LagCompensationManager : NetworkBehaviour
 
             //_currentDrawLoopCoroutine = StartCoroutine(DrawAllCollidersAtCachedTransformsLoop());
 
+            //float distance = Vector3.Distance(position, hitCol.GetCachedTRSData().position);
+            //float angle = Quaternion.Angle(rotation, hitCol.GetCachedTRSData().rotation);
 
+            //Debug.Log($"[LagComp] Shot {tick}: position error {distance:F4}m");
+            //Debug.Log($"[LagComp] Shot {tick}: rotation error {angle:F4}°");
 
             hitFound = true;
         }

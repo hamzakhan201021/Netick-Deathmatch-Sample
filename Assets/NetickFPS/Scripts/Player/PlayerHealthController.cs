@@ -34,6 +34,7 @@ public class PlayerHealthController : NetworkBehaviour
         PlayerHealth += amount;
     }
 
+    // TODO might be able to call only from change health, for now it's ok.
     public override void NetworkFixedUpdate()
     {
         UpdateHealthText();
@@ -41,6 +42,6 @@ public class PlayerHealthController : NetworkBehaviour
 
     private void UpdateHealthText()
     {
-        _healthText.text = "Health " + PlayerHealth;
+        _healthText.text = "Health " + PlayerHealth.ToString("F0");
     }
 }

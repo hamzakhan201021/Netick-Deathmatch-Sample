@@ -4,6 +4,7 @@ using Netick;
 using PG.LagCompensation;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using TMPro;
 
 public struct LCHitInfo
 {
@@ -19,83 +20,84 @@ public struct LCHitInfo
 
 public class PlayerShootingController : NetworkBehaviour
 {
-
+    [Header("Weapon")]
+    [SerializeField] private WeaponEffects _weaponEffects;
+    // TODO maybe later we could add weapon patterns...
+    [SerializeField] private Vector3 _weaponRecoilEffect = new Vector3(-5, 0, 0);
+    [SerializeField] private float _camRecoilRotAmount = 2;
+    [Space]
     [SerializeField] private Transform _gunFirePoint;
     [SerializeField] private ParticleSystem _gunFireEffect;
-    [SerializeField] private PlayerHealthController _playerHealthController;
-
+    [SerializeField] private AudioSource _fireAudioSource;
+    [SerializeField] private float _shotCoolDown = 0.1f;
+    [SerializeField] private float _maxDistance = 100;
     [SerializeField] private LayerMask _shootableLayerMask;
+    [Header("Reload")]
+    [SerializeField] private int _magSize = 30;
+    //[SerializeField] private int _totalAmmo = 120;
+    [SerializeField] private float ReloadTime = 1;
+
+    // Networked Vars
+    [Networked] public float GunTimer { get; set; } = 0;
+    [Networked] public float ReloadTimer { get; set; } = 0;
+
+    [Networked] public NetworkBool IsFiring { get; set; } = false;
+    [Networked] public NetworkBool IsReloading { get; set; } = false;
+
+    [Networked] public int CurrentAmmo { get; set; } = 30;
+    [Networked] public int TotalAmmo { get; set; } = 120;
+
+    [Header("Player")]
+    [SerializeField] private PlayerHealthController _playerHealthController;
+    [SerializeField] private PlayerMovementController _playerMovementController;
 
     // TODO change to hit collection etc, update to new LC(Lag Compensation)
     [SerializeField] private List<Collider> _rollbackColliders;
     [SerializeField] private HitColliderCollection _hitColliderCollection;
 
-    [SerializeField] private float _shotCoolDown = 0.1f;
-    [SerializeField] private float _maxDistance = 100;
-
-    [Networked] public float GunTimer { get; set; } = 0;
-
     [Header("Auto lag comp test settings")]
     [SerializeField] private bool _useAutoLagCompTest;
     [SerializeField] private Toggle _constantShootInput;
 
-    //[Networked] private TickTimer _timerFireRate { get; set; }
+    [Header("UI")]
+    [SerializeField] private TMP_Text _ammoText;
+    [SerializeField] private GameObject _reloadingOverlay;
+
+    //[HideInInspector] public Vector3 HitPosition;
+    //[HideInInspector] public Quaternion HitRotation;
+    //[HideInInspector] public int HitAuthTick;
 
     /// <summary>
     /// used to not have to constantly get reference to the lag compensation manager.
     /// </summary>
     private LagCompensationManager _lagCompManager;
 
-    //public override void NetworkUpdate()
-    //{
-    //    if (!IsInputSource || !Sandbox.InputEnabled)
-    //        return;
-
-    //    var networkInput = Sandbox.GetInput<FirstPersonInput>();
-
-    //    networkInput.ShootInput = Input.GetKey(KeyCode.Mouse0);
-
-    //    Sandbox.SetInput(networkInput);
-    //}
-
     public override void NetworkStart()
     {
         // Get lag comp manager from sandbox.
         _lagCompManager = Sandbox.GetComponent<LagCompensationManager>();
+
+        UpdateWeaponUI();
+
+        _reloadingOverlay.SetActive(false);
     }
 
     public override void NetworkFixedUpdate()
     {
         HandleShooting();
+        HandleReloading();
+        HandleEffects();
 
-        //if (GunTimer > 0)
-        //{
-        //    GunTimer -= Sandbox.FixedDeltaTime;
-        //}
-
-        //if (GunTimer < 0)
-        //{
-        //    GunTimer = 0;
-        //}
-
-        //if (FetchInput(out PlayerInput input))
-        //{
-        //    if (input.ShootInput && GunTimer <= 0)
-        //    {
-        //        GunTimer = _shotCoolDown;
-
-        //        if (!Sandbox.IsResimulating)
-        //        {
-        //            Debug.Log("One shot");
-        //        }
-        //    }
-        //}
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            ColliderCastSystem.DebugDrawColliders();
+        }
     }
 
     public override void NetworkUpdate()
     {
         PlayerInput cInput = Sandbox.GetInput<PlayerInput>();
-        cInput.ClientTick = Sandbox.AuthoritativeTick + 1;
+        //cInput.ClientTick = Sandbox.AuthoritativeTick + 1;
 
         if (_useAutoLagCompTest && _constantShootInput.isOn)
         {
@@ -106,32 +108,64 @@ public class PlayerShootingController : NetworkBehaviour
             cInput.ShootInput |= Input.GetKey(KeyCode.Mouse0);
         }
 
+        cInput.ReloadInput |= Input.GetKeyDown(KeyCode.R);
+
         Sandbox.SetInput(cInput);
+
+        UpdateWeaponUI();
     }
 
     private void HandleShooting()
     {
-        // Manage timer TODO use netick ticktimer
-        if (GunTimer > 0)
-        {
-            GunTimer -= Sandbox.FixedDeltaTime;
-        }
-        else if (GunTimer < 0)
-        {
-            GunTimer = 0;
-        }
-
         if (FetchInput(out PlayerInput input))
         {
-            if (input.ShootInput && GunTimer <= 0)
+            if (GunTimer > 0)
             {
-                GunTimer = _shotCoolDown;
+                GunTimer -= Sandbox.FixedDeltaTime;
+            }
+            else if (GunTimer < 0)
+            {
+                GunTimer = 0;
+            }
 
-                if (!Sandbox.IsResimulating)
+            IsFiring = false;
+
+            if (input.ShootInput)
+            {
+                if (CanShoot())
                 {
-                    Shoot(input);
+                    GunTimer = _shotCoolDown;
+                    IsFiring = true;
+
+                    CurrentAmmo -= 1;
+
+                    _weaponEffects.AddRecoil(_weaponRecoilEffect);
+
+                    _playerMovementController.AddRecoilRotation(_camRecoilRotAmount);
+
+                    if (!Sandbox.IsResimulating)
+                    {
+                        Shoot(input);
+                    }
+                }
+                else if (CanReload()) // auto reload if possible...
+                {
+                    Reload();
                 }
             }
+
+            //if (input.ShootInput && CanShoot())
+            //{
+            //    GunTimer = _shotCoolDown;
+            //    IsFiring = true;
+
+            //    CurrentAmmo -= 1;
+
+            //    if (!Sandbox.IsResimulating)
+            //    {
+            //        Shoot(input);
+            //    }
+            //}
         }
 
         // TODO remove once are tests completed.
@@ -239,6 +273,11 @@ public class PlayerShootingController : NetworkBehaviour
 
         if (IsServer)
         {
+            //if (IsHost)
+            //{
+            //    HitAuthTick = Sandbox.AuthoritativeTick;
+            //}
+
             // Debugging
             Debug.Log("Data tick diff, input tick from = " + input.ClientTick + " server tick " + Sandbox.AuthoritativeTick);
 
@@ -250,10 +289,6 @@ public class PlayerShootingController : NetworkBehaviour
             {
                 Debug.Log("Hit was found");
 
-                // LOL anyways
-                //_playerHealthController.ChangeHealth(-20); SIlly Will you seriously deplete your own health!?
-
-
                 //// LC
                 GameObject hitObject = hitInfo.HitColliderCollection.gameObject;
 
@@ -263,7 +298,7 @@ public class PlayerShootingController : NetworkBehaviour
                 {
                     if (pHC == _playerHealthController)
                     {
-                        Debug.Log("WHat BRO fired himself no way");
+                        Debug.Log("WHat BRO fired himself no way(THIS MUST NOT HAPPEN)");
                     }
 
                     pHC.ChangeHealth(-1);
@@ -291,10 +326,15 @@ public class PlayerShootingController : NetworkBehaviour
         else
         {
 
-
-            if (ColliderCastSystem.ColliderCastTransform(ray.origin, ray.direction, _maxDistance, out ColliderCastHit hit, out HitColliderCollection collection, out int index))
+            if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
             {
                 HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
+
+                // TODO remove XD
+                // this is for the precision check data
+                //HitPosition = col.transform.position;
+                //HitRotation = col.transform.rotation;
+                //HitAuthTick = Sandbox.AuthoritativeTick;
 
                 _lagCompManager.SendClientHitObjectDataRpc(col.transform.position, col.transform.rotation, false, Sandbox.AuthoritativeTick);
             }
@@ -311,5 +351,81 @@ public class PlayerShootingController : NetworkBehaviour
             //    _lagCompManager.SendClientHitObjectDataRpc(cR.transform.position, cR.transform.rotation, false, Sandbox.AuthoritativeTick);
             //}
         }
+    }
+
+
+    private void HandleReloading()
+    {
+        if (FetchInput(out PlayerInput input))
+        {
+            // Update reload timer
+            if (ReloadTimer > 0)
+            {
+                ReloadTimer -= Sandbox.FixedDeltaTime;
+            }
+            else if (ReloadTimer < 0)
+            {
+                ReloadTimer = 0;
+            }
+
+            // Reset is reloading after timer ends.
+            if (ReloadTimer <= 0 && IsReloading)
+            {
+                IsReloading = false;
+            }
+
+            // Check for reload
+            if (input.ReloadInput && CanReload())
+            {
+                
+                //int missing = magSize - currentAmmo;
+                //int toLoad = Mathf.Min(missing, reserveAmmo);
+                //reserveAmmo -= toLoad;
+                //currentAmmo += toLoad;
+
+                Reload();
+            }
+        }
+    }
+
+    private void Reload()
+    {
+        ReloadTimer = ReloadTime;
+
+        IsReloading = true;
+
+        int usedBullets = _magSize - CurrentAmmo;
+        int bulletsToLoad = Mathf.Min(usedBullets, TotalAmmo);
+
+        TotalAmmo -= bulletsToLoad;
+        CurrentAmmo += bulletsToLoad;
+    }
+
+    private void HandleEffects()
+    {
+        if (IsFiring && !IsResimulating)
+        {
+            // Effects
+            _gunFireEffect.Play();
+            _fireAudioSource.Play();
+        }
+    }
+
+    private bool CanShoot()
+    {
+        return GunTimer <= 0 && CurrentAmmo != 0 && !IsReloading;
+    }
+
+    // TODO maybe we could use can shoot as one check within
+    private bool CanReload()
+    {
+        return GunTimer <= 0 && ReloadTimer <= 0 && CurrentAmmo < _magSize && TotalAmmo != 0 && !IsReloading;
+    }
+
+    private void UpdateWeaponUI()
+    {
+        _ammoText.text = CurrentAmmo + "/" + TotalAmmo;
+
+        _reloadingOverlay.SetActive(IsReloading);
     }
 }

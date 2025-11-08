@@ -13,8 +13,12 @@ public class PlayerInputProvider : NetworkEventsListener
     //    tg2 = GameObject.FindGameObjectWithTag("Finish2").GetComponent<Toggle>();
     //}
 
+    private PlayerShootingController _pSC;
+
     public override void OnInput(NetworkSandbox sandbox)
     {
+        if (_pSC == null) _pSC = GetComponent<PlayerShootingController>();
+
         PlayerInput input = sandbox.GetInput<PlayerInput>();
 
         //input.ShootInput = Input.GetKey(KeyCode.Mouse0);
@@ -23,7 +27,11 @@ public class PlayerInputProvider : NetworkEventsListener
         //input.ShotInterpData.RemoteInterpAlpha = sandbox.RemoteInterpolation.Alpha;
 
         // TODO (try something else) set client tick.
-        input.ClientTick = sandbox.AuthoritativeTick;
+
+        //input.HitPosition = _pSC.HitPosition;
+        //input.HitRotation = _pSC.HitRotation;
+        input.ClientTick = Sandbox.AuthoritativeTick;
+
 
         //if (tg.isOn)
         //{

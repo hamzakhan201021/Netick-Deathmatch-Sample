@@ -34,7 +34,7 @@ MonoBehaviour:
   MaxPredictedTicks: 512
   ServerDivisor: 1
   PhysicsPrediction: 0
-  PhysicsType: 1
+  PhysicsType: 0
   InvokeRenderInHeadless: 0
   InvokeUpdate: 1
   RenderInvokeOrder: 1

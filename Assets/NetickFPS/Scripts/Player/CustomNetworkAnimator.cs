@@ -4,15 +4,17 @@ using UnityEngine.Animations;
 using Netick;
 using Netick.Unity;
 
-public enum AnimationState
+
+
+public class CustomNetworkAnimator : NetworkBehaviour
+{
+
+    public enum AnimationState
 {
     Idle,
     WalkForward,
     WalkBackward
 }
-
-public class CustomNetworkAnimator : NetworkBehaviour
-{
     public AnimationClip IdleClip;
     public AnimationClip WalkForwardClip;
     public AnimationClip WalkBackwardClip;

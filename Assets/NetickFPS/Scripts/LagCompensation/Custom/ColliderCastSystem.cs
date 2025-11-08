@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace PG.LagCompensation
 {
@@ -262,9 +265,13 @@ namespace PG.LagCompensation
 
 
 
-
-
+#if UNITY_EDITOR
+        // Reset static data when entering playmode to support, disable domain reload
+        [InitializeOnEnterPlayMode]
+        static void OnEnterPlayMode(EnterPlayModeOptions options)
+        {
+            SimulationObjects.Clear();
+        }
+#endif
     }
-
-
 }
