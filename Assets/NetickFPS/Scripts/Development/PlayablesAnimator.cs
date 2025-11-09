@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Animations;
+using UnityEngine.Animations.Rigging;
 using UnityEngine.Playables;
 
 [RequireComponent(typeof(Animator))]
@@ -13,11 +14,13 @@ public class PlayablesAnimator : MonoBehaviour
         public Vector2 Position;
     }
 
+    public RigBuilder CRigBuilder;
+
     public List<BlendClip> BlendClips = new();
 
     [Range(-1f, 1f)] public float MoveX;
     [Range(-1f, 1f)] public float MoveY;
-    [Range(0.0f, 5f)] public float Speed = 1f;
+    public float Speed = 1f;
 
     [SerializeField] private bool _animStateFootIK = true;
     [SerializeField] private bool _animIKPass = false;
@@ -27,8 +30,7 @@ public class PlayablesAnimator : MonoBehaviour
     AnimationClipPlayable[] clipPlayables;
     AnimationClip[] clips;
     PolarGradientBandInterpolator interpolator;
-    double normalizedTime;
-
+    double manualTime;
     void Start()
     {
         if (BlendClips == null || BlendClips.Count == 0)
@@ -36,6 +38,11 @@ public class PlayablesAnimator : MonoBehaviour
             Debug.LogError("Please assign some BlendClips before playing!");
             return;
         }
+
+        CRigBuilder.Build();
+        graph = CRigBuilder.graph;
+        if (graph.IsValid()) graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+        else Debug.Log("Invalid graph");
 
         int count = BlendClips.Count;
         clips = new AnimationClip[count];
@@ -51,8 +58,8 @@ public class PlayablesAnimator : MonoBehaviour
 
         var animator = GetComponent<Animator>();
 
-        graph = PlayableGraph.Create();
-        graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+        // graph = PlayableGraph.Create();
+        // graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
 
         var output = AnimationPlayableOutput.Create(graph, "Animation", animator);
 
@@ -73,26 +80,56 @@ public class PlayablesAnimator : MonoBehaviour
         }
 
         graph.Play();
-        normalizedTime = 0.0;
+        manualTime = 0.0;
     }
 
     void Update()
     {
+        // if (!graph.IsValid()) return;
+
+        // double delta = Time.deltaTime;
+        // manualTime += delta * Speed;
+        // // normalizedTime %= 1.0;
+
+        // // timeTrue += Time.deltaTime;
+        // // timeTrue %= 1.0;
+
+        // // graph.Evaluate((float)delta);
+
+        // // mixer.SetTime(timeTrue);
+
+        // // PlayableExtensions.SetTime(graph.GetRootPlayable(0), timeTrue);
+        // // PlayableExtensions.SetSpeed(graph.GetRootPlayable(0), Speed);
+
+        // MoveX = Mathf.Clamp(MoveX, -1f, 1f);
+        // MoveY = Mathf.Clamp(MoveY, -1f, 1f);
+
+        // float[] input = new float[] { MoveX, MoveY };
+        // float[] weights = interpolator.Interpolate(input, true);
+        // if (weights == null || weights.Length != clips.Length)
+        // {
+        //     weights = new float[clips.Length];
+        //     weights[0] = 1f;
+        // }
+
+        // for (int i = 0; i < clipPlayables.Length; i++)
+        // {
+        //     var clip = clips[i];
+        //     double length = (clip != null && clip.length > 0.0001) ? clip.length : 1.0;
+
+        //     manualTime %= 1.0;
+
+        //     double t = manualTime * length;
+        //     clipPlayables[i].SetTime(t);
+        //     clipPlayables[i].SetApplyFootIK(_animStateFootIK);
+        //     clipPlayables[i].SetApplyPlayableIK(_animIKPass);
+        //     mixer.SetInputWeight(i, weights[i]);
+        // }
+        // TODO use this for tick accurate animator system.
         if (!graph.IsValid()) return;
 
         double delta = Time.deltaTime;
-        normalizedTime += delta * Speed;
-        // normalizedTime %= 1.0;
-
-        // timeTrue += Time.deltaTime;
-        // timeTrue %= 1.0;
-
-        graph.Evaluate((float)delta);
-
-        // mixer.SetTime(timeTrue);
-
-        // PlayableExtensions.SetTime(graph.GetRootPlayable(0), timeTrue);
-        // PlayableExtensions.SetSpeed(graph.GetRootPlayable(0), Speed);
+        manualTime += delta * Speed;
 
         MoveX = Mathf.Clamp(MoveX, -1f, 1f);
         MoveY = Mathf.Clamp(MoveY, -1f, 1f);
@@ -105,19 +142,39 @@ public class PlayablesAnimator : MonoBehaviour
             weights[0] = 1f;
         }
 
+        // Find dominant clip (highest weight)
+        int dominantIndex = 0;
+        float maxWeight = 0f;
+        for (int i = 0; i < weights.Length; i++)
+        {
+            if (weights[i] > maxWeight)
+            {
+                maxWeight = weights[i];
+                dominantIndex = i;
+            }
+        }
+
+        double dominantLength = (clips[dominantIndex] != null && clips[dominantIndex].length > 0.0001)
+            ? clips[dominantIndex].length
+            : 1.0;
+
+        // Advance each clip proportionally to dominant clip
         for (int i = 0; i < clipPlayables.Length; i++)
         {
             var clip = clips[i];
-            double length = (clip != null && clip.length > 0.0001) ? clip.length : 1.0;
+            if (clip == null || clip.length < 0.0001) continue;
 
-            normalizedTime %= 1.0;
+            double normalizedTime = manualTime / dominantLength; // [0, ∞)
+            normalizedTime %= 1.0; // loop
 
-            double t = normalizedTime * length;
+            double t = normalizedTime * clip.length; // scale to clip length
             clipPlayables[i].SetTime(t);
             clipPlayables[i].SetApplyFootIK(_animStateFootIK);
             clipPlayables[i].SetApplyPlayableIK(_animIKPass);
             mixer.SetInputWeight(i, weights[i]);
         }
+
+        graph.Evaluate((float)delta);
     }
 
     void OnDisable()

@@ -860,7 +860,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8669573124620286725}
-  - {fileID: 707781988696780252}
   m_Father: {fileID: 2660052022879487704}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7746414226452317606
@@ -875,7 +874,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70b342d8ce5c2fd48b8fa3147d48d1d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.Rig
-  m_Weight: 1
+  m_Weight: 0
   m_Effectors: []
 --- !u!1 &1049761667202145158
 GameObject:
@@ -1942,7 +1941,7 @@ Transform:
   m_GameObject: {fileID: 2079075691083761867}
   serializedVersion: 2
   m_LocalRotation: {x: 0.00000005960463, y: 0.000000042188, z: 4.1158178e-11, w: 1}
-  m_LocalPosition: {x: 0, y: 1.6551604, z: -0.039776564}
+  m_LocalPosition: {x: -0.000000059612034, y: 1.6551604, z: -0.039776564}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6020,7 +6019,7 @@ Animator:
   m_GameObject: {fileID: 6074976491811380464}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 0e55d5c42cc96404f872b45455603f8b, type: 3}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: e4610d7a7f12c474e80f58aaeb490afe, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -6101,17 +6100,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   _iKLayerName: Animation
+  _iKLayerID: 1
+  _checkLayer: 0
   _playerMovementController: {fileID: 4799752753739770390}
   _rotationBones:
+  - Bone: {fileID: 3983480467052286926}
+    BoneID: 54
+    Weight: 1
+    SourceOffset: {x: 0, y: 0, z: 0, w: 0}
+    CurrentRotation: {x: 0, y: 0, z: 0, w: 0}
   - Bone: {fileID: 3589233798143969816}
-    Weight: 0.3
+    BoneID: 8
+    Weight: 1
     SourceOffset: {x: 0, y: 0, z: 0, w: 0}
     CurrentRotation: {x: 0, y: 0, z: 0, w: 0}
   - Bone: {fileID: 1316546299352084186}
-    Weight: 0.675
-    SourceOffset: {x: 0, y: 0, z: 0, w: 0}
-    CurrentRotation: {x: 0, y: 0, z: 0, w: 0}
-  - Bone: {fileID: 3983480467052286926}
+    BoneID: 7
     Weight: 1
     SourceOffset: {x: 0, y: 0, z: 0, w: 0}
     CurrentRotation: {x: 0, y: 0, z: 0, w: 0}
@@ -6130,7 +6134,7 @@ MonoBehaviour:
     Offset: {x: 0, y: 0, z: 0}
   _rotationSpeed: 15
   _camPosition: {fileID: 2221922424282550752}
-  _targetBone: {fileID: 6005406257948325593}
+  _targetBone: {fileID: 731610214350781442}
   _weaponLGrip: {fileID: 9175006578431509190}
   _weaponLGripHint: {fileID: 174102565432655932}
   _weaponRGrip: {fileID: 944283641518171708}
@@ -6149,6 +6153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02caa6bba13c24a5e8f8bb8d5652509c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  _targetAnimator: {fileID: 1844307678191643506}
+  _rigBuilder: {fileID: 60133863258781120}
   BlendClips:
   - Clip: {fileID: 7400000, guid: 6077cbf0678c44cc0bb190f5180d6008, type: 2}
     Position: {x: 0, y: 0}
@@ -6167,11 +6173,15 @@ MonoBehaviour:
   - Clip: {fileID: 7400000, guid: 26cf0bbbcbebc4fd5a94c886132a0e67, type: 2}
     Position: {x: 1, y: 0}
   MoveX: 0
-  MoveY: 0
+  MoveY: 1
   Speed: 1
   _normalizeWeights: 1
   _enableAnimFootIK: 0
   _enableIKPass: 1
+  _boneTR: {fileID: 3983480467052286926}
+  _boneTar: {fileID: 731610214350781442}
+  UpperBodyMask: {fileID: 31900000, guid: ff0501eb1bfaf402d886e51ce2035f78, type: 2}
+  UpperBodyClip: {fileID: 7400000, guid: 0eebbd4f48b294c8cb7f160b42da93c2, type: 2}
 --- !u!114 &60133863258781120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6188,89 +6198,6 @@ MonoBehaviour:
   - m_Rig: {fileID: 7746414226452317606}
     m_Active: 1
   m_Effectors: []
---- !u!1 &6078695152859322269
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 707781988696780252}
-  - component: {fileID: 3580935319280731416}
-  m_Layer: 0
-  m_Name: ParentConstraint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &707781988696780252
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6078695152859322269}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 4337856240670466155}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3580935319280731416
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6078695152859322269}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8935e03361a14ec4b8edc872f76bc822, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.MultiParentConstraint
-  m_Weight: 1
-  m_Data:
-    m_ConstrainedObject: {fileID: 2221922424282550752}
-    m_SourceObjects:
-      m_Length: 1
-      m_Item0:
-        transform: {fileID: 6005406257948325593}
-        weight: 1
-      m_Item1:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item2:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item3:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item4:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item5:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item6:
-        transform: {fileID: 0}
-        weight: 0
-      m_Item7:
-        transform: {fileID: 0}
-        weight: 0
-    m_ConstrainedPositionAxes:
-      x: 1
-      y: 1
-      z: 1
-    m_ConstrainedRotationAxes:
-      x: 1
-      y: 1
-      z: 1
-    m_MaintainPositionOffset: 1
-    m_MaintainRotationOffset: 1
 --- !u!1 &6093820096052883372
 GameObject:
   m_ObjectHideFlags: 0
