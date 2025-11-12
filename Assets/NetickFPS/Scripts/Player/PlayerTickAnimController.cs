@@ -7,6 +7,7 @@ using UnityEngine.Playables;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using Unity.VisualScripting;
 
 // [DefaultExecutionOrder(1000)]
 public class PlayerTickAnimController : NetworkBehaviour
@@ -516,85 +517,608 @@ public class PlayerTickAnimController : NetworkBehaviour
     // public bool TakeControl = false;
     // public bool Reverse = false;
     // public float networkTime;
-    [Header("Graph Management")]
-    [SerializeField] private RigBuilder _rigBuilder;
-    [SerializeField] private Animator _targetAnimator;
-    // [SerializeField] private CreateGraphMode GraphCreationMode;
-    // [SerializeField] private string GraphName = "CustomAnimationGraph";
-    [SerializeField] private bool InvokeSyncLayers = true;
 
-    public List<BlendClip> BlendClips = new();
-    public AnimationClip UpperBodyClip;
-    public AvatarMask UpperBodyMask;
 
-    // [Range(-1f, 1f)] public float MoveX;
-    // [Range(-1f, 1f)] public float MoveY;
-    [Networked, Smooth(false)] public float MoveX { get; set; }
-    [Networked, Smooth(false)] public float MoveY { get; set; }
 
-    [Networked, Smooth(false)] public Vector2 Movement { get; set; }
-    public float LerpSpeed = 10;
-    public float Speed = 1f;
 
-    [SerializeField] private bool _animStateFootIK = true;
-    [SerializeField] private bool _animIKPass = false;
 
-    PlayableGraph graph;
-    AnimationMixerPlayable mixer;
-    AnimationClipPlayable[] clipPlayables;
-    AnimationClip[] clips;
-    PolarGradientBandInterpolator interpolator;
-    double manualTime;
-    public bool TakeControl = false;
-    public bool ContinueUpdatingEvenWhenTakeControl = false;
-    public bool Reverse = false;
-    // public double networkTime;
 
-    double lastNetworkTime = 0.0f;
-    double effectivePhaseSpeed = 0.0;
+    // Below original with only one blend tree
+    // [Header("Graph Management")]
+    // [SerializeField] private RigBuilder _rigBuilder;
+    // [SerializeField] private Animator _targetAnimator;
+    // // [SerializeField] private CreateGraphMode GraphCreationMode;
+    // // [SerializeField] private string GraphName = "CustomAnimationGraph";
+    // [SerializeField] private bool InvokeSyncLayers = true;
 
-    public Action OnSetValues;
+    // [Header("Locomotion")]
+    // public List<BlendClip> WalkBlendClips = new();
+    // public List<BlendClip> RunBlendClips = new();
+    // public List<BlendClip> CrouchBlendClips = new();
+    // [Header("Upper Body")]
+    // public AnimationClip UpperBodyClip;
+    // public AvatarMask UpperBodyMask;
 
-    [Networked, Smooth] public float AnimTime { get; set; }
+    // // [Range(-1f, 1f)] public float MoveX;
+    // // [Range(-1f, 1f)] public float MoveY;
 
-    void Start()
-    {
-        InitializeGraph();
-        // CreateGraph();
-        CreateGraphSimple();
-        SetupSystem();
-    }
+    // public float LerpSpeed = 10;
+    // public float Speed = 1f;
+    // [SerializeField] private bool _animStateFootIK = true;
+    // [SerializeField] private bool _animIKPass = false;
 
-    private void InitializeGraph()
-    {
-        // Init the rig builder and use it's graph.
-        _rigBuilder.Build();
-        graph = _rigBuilder.graph;
-        graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
-    }
+    // // Networked properties
+    // [Networked, Smooth(false)] public float MoveX { get; set; }
+    // [Networked, Smooth(false)] public float MoveY { get; set; }
+    // [Networked, Smooth(false)] public float StateValue { get; set; }
+    // [Networked, Smooth(false)] public Vector2 Movement { get; set; }
 
-    // private void CreateGraph()
+    // private PlayableGraph graph;
+    // private AnimationMixerPlayable mixer;
+    // private AnimationClipPlayable[] clipPlayables;
+    // private AnimationClip[] clips;
+    // private PolarGradientBandInterpolator interpolator;
+    // private double manualTime;
+
+    // [Header("Debugging (might not work XD)")]
+    // public bool TakeControl = false;
+    // public bool ContinueUpdatingEvenWhenTakeControl = false;
+    // public bool Reverse = false;
+    // // public double networkTime;
+
+    // private double lastNetworkTime = 0.0f;
+    // private double effectivePhaseSpeed = 0.0;
+
+    // [Tooltip("Listen to this to set values")]
+    // public Action OnSetValues;
+
+    // [Networked, Smooth] public float AnimTime { get; set; }
+
+    // void Start()
     // {
-    //     if (_targetAnimator == null || BlendClips == null || BlendClips.Count == 0)
+    //     InitializeGraph();
+    //     // CreateGraphOld();
+    //     CreateGraphSimple();
+    //     SetupSystem();
+    // }
+
+    // private void InitializeGraph()
+    // {
+    //     // Init the rig builder and use it's graph.
+    //     _rigBuilder.Build();
+    //     graph = _rigBuilder.graph;
+    //     graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+    // }
+
+    // private void CreateGraphSimple()
+    // {
+    //     if (_targetAnimator == null || WalkBlendClips == null || WalkBlendClips.Count == 0)
     //     {
     //         Debug.LogError("TickAnimator: Assign Animator and BlendClips before starting!");
     //         return;
     //     }
 
-    //     int count = BlendClips.Count;
+    //     // Layer mixer (2 layers)
+    //     var layerMixer = AnimationLayerMixerPlayable.Create(graph, 2);
+
+    //     // Upper body clip
+    //     var upperBodyClipPlayable = AnimationClipPlayable.Create(graph, UpperBodyClip);
+    //     upperBodyClipPlayable.SetApplyPlayableIK(_animIKPass);
+
+    //     // Blend clip mixer
+    //     mixer = AnimationMixerPlayable.Create(graph, WalkBlendClips.Count);
+
+
+    //     /// ----TODO--- Create sample points using blend clips
+    //     clips = new AnimationClip[WalkBlendClips.Count];
+    //     float[][] samplePoints = new float[WalkBlendClips.Count][];
+
+    //     for (int i = 0; i < WalkBlendClips.Count; i++)
+    //     {
+    //         clips[i] = WalkBlendClips[i].Clip;
+    //         samplePoints[i] = new float[] { WalkBlendClips[i].Position.x, WalkBlendClips[i].Position.y };
+    //     }
+
+    //     // Create the interpolator for this blend tree (mixer) using sample points TODO
+    //     interpolator = new PolarGradientBandInterpolator(samplePoints);
+
+    //     // Initalize playable clips list
+    //     clipPlayables = new AnimationClipPlayable[WalkBlendClips.Count];
+
+    //     // Setup mixer with clip playables
+    //     for (int i = 0; i < WalkBlendClips.Count; i++)
+    //     {
+    //         // Create and setup this clip as a clip playable
+    //         clipPlayables[i] = AnimationClipPlayable.Create(graph, WalkBlendClips[i].Clip);
+    //         clipPlayables[i].SetSpeed(1);
+    //         clipPlayables[i].SetTime(0);
+    //         clipPlayables[i].SetApplyPlayableIK(_animIKPass);
+
+    //         // Connect it to the mixer and set the input weight
+    //         graph.Connect(clipPlayables[i], 0, mixer, i);
+    //         mixer.SetInputWeight(i, i == 0 ? 1f : 0f);
+    //     }
+
+    //     // Connect layers correctly
+    //     graph.Connect(mixer, 0, layerMixer, 0);
+    //     graph.Connect(upperBodyClipPlayable, 0, layerMixer, 1);
+
+    //     // Apply avatar mask to layer 1
+    //     layerMixer.SetLayerMaskFromAvatarMask(1, UpperBodyMask);
+
+    //     layerMixer.SetInputWeight(0, 1f);
+    //     layerMixer.SetInputWeight(1, 1f);
+
+    //     var output = AnimationPlayableOutput.Create(graph, "Animation", _targetAnimator);
+    //     output.SetSourcePlayable(layerMixer);
+
+    //     graph.Play();
+    // }
+
+
+    // private void SetupSystem()
+    // {
+    //     manualTime = 0.0;
+    //     // lastNetworkTime = networkTime;
+    //     effectivePhaseSpeed = 0.0;
+    // }
+
+    // public override void NetworkFixedUpdate()
+    // {
+    //     if (!Object.IsProxy)
+    //     {
+    //         OnSetValues.Invoke();
+
+    //         Movement = Vector2.Lerp(Movement, new Vector2(MoveX, MoveY), LerpSpeed * Sandbox.FixedDeltaTime);
+
+    //         AnimTime += Sandbox.FixedDeltaTime;
+
+    //         // SetAnimationOld(Sandbox.LocalInterpolation.Time);
+    //         // Animate(MoveX, MoveY, Sandbox.LocalInterpolation.Time);
+
+    //         // Animate(MoveX, MoveY, AnimTime);
+    //     }
+
+    //     Animate(Movement, AnimTime);
+    // }
+
+    // public override void NetworkRender()
+    // {
+    //     // Sadly the approach of using interpolation time (and using interpolation for lag compensation so far hasn't worked)
+    //     // SetAnimationOld(Object.IsProxy ? Sandbox.RemoteInterpolation.Time : Sandbox.LocalInterpolation.Time);
+    //     // Animate(MoveX, MoveY, Object.IsProxy ? Sandbox.RemoteInterpolation.Time : Sandbox.LocalInterpolation.Time);
+
+    //     // Animate(MoveX, MoveY, AnimTime);
+    // }
+
+    // private void Animate(Vector2 movement, float time)
+    // {
+    //     if (!graph.IsValid()) return;
+
+    //     // Set mixer time.
+    //     mixer.SetPropagateSetTime(true);
+    //     mixer.SetTime(time);
+
+    //     movement = Vector2.ClampMagnitude(movement, 1);
+
+    //     // moveX = Mathf.Clamp(moveX, -1f, 1f);
+    //     // moveY = Mathf.Clamp(moveY, -1f, 1f);
+
+    //     float[] input = new float[] { movement.x, movement.y };
+    //     float[] weights = interpolator.Interpolate(input, true);
+
+    //     for (int i = 0; i < clipPlayables.Length; i++)
+    //     {
+    //         mixer.SetInputWeight(i, weights[i]);
+    //     }
+
+
+
+    //     if (InvokeSyncLayers) _rigBuilder.SyncLayers();
+    //     graph.Evaluate();
+    // }
+
+    // public override void NetworkDestroy()
+    // {
+    //     if (graph.IsValid()) graph.Destroy();
+    // }
+
+    // void OnDestroy()
+    // {
+    //     if (graph.IsValid()) graph.Destroy();
+    // }
+
+    // void OnDisable()
+    // {
+    //     if (graph.IsValid()) graph.Destroy();
+    // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // [Header("Graph Management")]
+    // [SerializeField] private RigBuilder _rigBuilder;
+    // [SerializeField] private Animator _targetAnimator;
+    // [SerializeField] private bool InvokeSyncLayers = true;
+
+    // [Header("Locomotion")]
+    // public List<BlendClip> WalkBlendClips = new();
+    // public List<BlendClip> RunBlendClips = new();
+    // public List<BlendClip> CrouchBlendClips = new();
+
+    // [Header("Upper Body")]
+    // public AnimationClip UpperBodyClip;
+    // public AvatarMask UpperBodyMask;
+
+    // public float LerpSpeed = 10;
+
+    // [Networked, Smooth(false)] public float MoveX { get; set; }
+    // [Networked, Smooth(false)] public float MoveY { get; set; }
+    // [Networked, Smooth(false)] public float StateValue { get; set; } // 0 = crouch, 0.5 = walk, 1 = run
+    // [Networked, Smooth(false)] public Vector2 MovementSmooth { get; set; }
+    // [Networked, Smooth(false)] public float StateValueSmooth { get; set; } // 0 = crouch, 0.5 = walk, 1 = run
+    // [Networked, Smooth] public float AnimTime { get; set; }
+
+    // private PlayableGraph graph;
+    // private AnimationMixerPlayable walkMixer;
+    // private AnimationMixerPlayable runMixer;
+    // private AnimationMixerPlayable crouchMixer;
+    // private AnimationMixerPlayable locomotionMixer;
+    // private AnimationClipPlayable[] walkClips;
+    // private AnimationClipPlayable[] runClips;
+    // private AnimationClipPlayable[] crouchClips;
+    // private PolarGradientBandInterpolator walkInterpolator;
+    // private PolarGradientBandInterpolator runInterpolator;
+    // private PolarGradientBandInterpolator crouchInterpolator;
+
+    // public Action OnSetValues;
+
+    // void Start()
+    // {
+    //     InitializeGraph();
+    //     CreateLocomotionGraphs();
+    // }
+
+    // private void InitializeGraph()
+    // {
+    //     _rigBuilder.Build();
+    //     graph = _rigBuilder.graph;
+    //     graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+    // }
+
+    // private void CreateLocomotionGraphs()
+    // {
+    //     if (_targetAnimator == null) return;
+
+    //     // --- Walk Mixer ---
+    //     walkMixer = AnimationMixerPlayable.Create(graph, WalkBlendClips.Count);
+    //     walkClips = new AnimationClipPlayable[WalkBlendClips.Count];
+    //     float[][] walkSamplePoints = new float[WalkBlendClips.Count][];
+    //     for (int i = 0; i < WalkBlendClips.Count; i++)
+    //     {
+    //         walkClips[i] = AnimationClipPlayable.Create(graph, WalkBlendClips[i].Clip);
+    //         walkClips[i].SetApplyPlayableIK(false);
+    //         graph.Connect(walkClips[i], 0, walkMixer, i);
+    //         walkMixer.SetInputWeight(i, i == 0 ? 1f : 0f);
+    //         walkSamplePoints[i] = new float[] { WalkBlendClips[i].Position.x, WalkBlendClips[i].Position.y };
+    //     }
+    //     walkInterpolator = new PolarGradientBandInterpolator(walkSamplePoints);
+
+    //     // --- Run Mixer ---
+    //     runMixer = AnimationMixerPlayable.Create(graph, RunBlendClips.Count);
+    //     runClips = new AnimationClipPlayable[RunBlendClips.Count];
+    //     float[][] runSamplePoints = new float[RunBlendClips.Count][];
+    //     for (int i = 0; i < RunBlendClips.Count; i++)
+    //     {
+    //         runClips[i] = AnimationClipPlayable.Create(graph, RunBlendClips[i].Clip);
+    //         runClips[i].SetApplyPlayableIK(false);
+    //         graph.Connect(runClips[i], 0, runMixer, i);
+    //         runMixer.SetInputWeight(i, i == 0 ? 1f : 0f);
+    //         runSamplePoints[i] = new float[] { RunBlendClips[i].Position.x, RunBlendClips[i].Position.y };
+    //     }
+    //     runInterpolator = new PolarGradientBandInterpolator(runSamplePoints);
+
+    //     // --- Crouch Mixer ---
+    //     crouchMixer = AnimationMixerPlayable.Create(graph, CrouchBlendClips.Count);
+    //     crouchClips = new AnimationClipPlayable[CrouchBlendClips.Count];
+    //     float[][] crouchSamplePoints = new float[CrouchBlendClips.Count][];
+    //     for (int i = 0; i < CrouchBlendClips.Count; i++)
+    //     {
+    //         crouchClips[i] = AnimationClipPlayable.Create(graph, CrouchBlendClips[i].Clip);
+    //         crouchClips[i].SetApplyPlayableIK(false);
+    //         graph.Connect(crouchClips[i], 0, crouchMixer, i);
+    //         crouchMixer.SetInputWeight(i, i == 0 ? 1f : 0f);
+    //         crouchSamplePoints[i] = new float[] { CrouchBlendClips[i].Position.x, CrouchBlendClips[i].Position.y };
+    //     }
+    //     crouchInterpolator = new PolarGradientBandInterpolator(crouchSamplePoints);
+
+    //     // --- Combine all locomotion mixers ---
+    //     locomotionMixer = AnimationMixerPlayable.Create(graph, 3);
+    //     graph.Connect(crouchMixer, 0, locomotionMixer, 0);
+    //     graph.Connect(walkMixer, 0, locomotionMixer, 1);
+    //     graph.Connect(runMixer, 0, locomotionMixer, 2);
+
+    //     // Upper body clip
+    //     var upperBodyPlayable = AnimationClipPlayable.Create(graph, UpperBodyClip);
+    //     var layerMixer = AnimationLayerMixerPlayable.Create(graph, 2);
+    //     graph.Connect(locomotionMixer, 0, layerMixer, 0);
+    //     graph.Connect(upperBodyPlayable, 0, layerMixer, 1);
+    //     layerMixer.SetLayerMaskFromAvatarMask(1, UpperBodyMask);
+    //     layerMixer.SetInputWeight(0, 1f);
+    //     layerMixer.SetInputWeight(1, 1f);
+
+    //     var output = AnimationPlayableOutput.Create(graph, "Animation", _targetAnimator);
+    //     output.SetSourcePlayable(layerMixer);
+
+    //     graph.Play();
+    // }
+
+    // public override void NetworkFixedUpdate()
+    // {
+    //     if (!Object.IsProxy)
+    //     {
+    //         OnSetValues.Invoke();
+
+    //         Vector2 currentMovement = new Vector2(MoveX, MoveY);
+    //         MovementSmooth = Vector2.Lerp(MovementSmooth, currentMovement, LerpSpeed * Sandbox.FixedDeltaTime);
+    //         StateValueSmooth = Mathf.Lerp(StateValueSmooth, StateValue, LerpSpeed * Sandbox.FixedDeltaTime);
+
+    //         // Blend all mixers using StateValue: 0 = crouch, 0.5 = walk, 1 = run
+    //         float crouchWeight = Mathf.Clamp01(1f - (StateValueSmooth * 2f));       // 0->1 when StateValue 0->0.5
+    //         float walkWeight = Mathf.Clamp01(1f - Mathf.Abs(StateValueSmooth - 0.5f) * 2f); // peak at 0.5
+    //         float runWeight = Mathf.Clamp01((StateValueSmooth - 0.5f) * 2f);         // 0->1 when StateValue 0.5->1
+
+    //         locomotionMixer.SetInputWeight(0, crouchWeight);
+    //         locomotionMixer.SetInputWeight(1, walkWeight);
+    //         locomotionMixer.SetInputWeight(2, runWeight);
+
+    //         // Animate each blend tree internally
+    //         AnimateBlendTree(crouchMixer, crouchClips, crouchInterpolator, MovementSmooth);
+    //         AnimateBlendTree(walkMixer, walkClips, walkInterpolator, MovementSmooth);
+    //         AnimateBlendTree(runMixer, runClips, runInterpolator, MovementSmooth);
+
+    //         AnimTime += Sandbox.FixedDeltaTime;
+    //         locomotionMixer.SetTime(AnimTime);
+    //     }
+    // }
+
+    // private void AnimateBlendTree(AnimationMixerPlayable mixer, AnimationClipPlayable[] clips, PolarGradientBandInterpolator interpolator, Vector2 input)
+    // {
+    //     if (!graph.IsValid()) return;
+    //     mixer.SetPropagateSetTime(true);
+    //     mixer.SetTime(AnimTime);
+    //     // input = Vector2.ClampMagnitude(input, 1);
+    //     float[] weights = interpolator.Interpolate(new float[] { MovementSmooth.x, MovementSmooth.y }, true);
+    //     for (int i = 0; i < clips.Length; i++)
+    //     {
+    //         mixer.SetInputWeight(i, weights[i]);
+    //     }
+    //     graph.Evaluate();
+    // }
+
+    // public override void NetworkRender() { }
+
+    // public override void NetworkDestroy()
+    // {
+    //     if (graph.IsValid()) graph.Destroy();
+    // }
+
+    // void OnDestroy()
+    // {
+    //     if (graph.IsValid()) graph.Destroy();
+    // }
+    [Header("Graph Management")]
+    [SerializeField] private RigBuilder _rigBuilder;
+    [SerializeField] private Animator _targetAnimator;
+    [SerializeField] private bool InvokeSyncLayers = true;
+
+    [Header("Locomotion")]
+    [SerializeField] private bool _enableAnimFootIK = true;
+    [SerializeField] private bool _enableIKPass = false;
+    public List<BlendClip> WalkBlendClips = new();
+    public List<BlendClip> RunBlendClips = new();
+    public List<BlendClip> CrouchBlendClips = new();
+
+
+    [Header("Upper Body")]
+    public AnimationClip UpperBodyClip;
+    public AvatarMask UpperBodyMask;
+
+    public float LerpSpeed = 10;
+
+    [Networked, Smooth(false)] public float MoveX { get; set; }
+    [Networked, Smooth(false)] public float MoveY { get; set; }
+    [Networked, Smooth(false)] public float StateValue { get; set; } // 0=crouch, 0.5=walk, 1=run
+    [Networked, Smooth(false)] public Vector2 MovementSmooth { get; set; }
+    [Networked, Smooth(false)] public float StateValueSmooth { get; set; }
+    [Networked, Smooth] public float AnimTime { get; set; }
+
+    private PlayableGraph graph;
+    private AnimationMixerPlayable locomotionMixer;
+    private AnimationMixerPlayable walkMixer;
+    private AnimationMixerPlayable runMixer;
+    private AnimationMixerPlayable crouchMixer;
+
+    private AnimationClipPlayable[] walkClips;
+    private AnimationClipPlayable[] runClips;
+    private AnimationClipPlayable[] crouchClips;
+
+    private PolarGradientBandInterpolator walkInterpolator;
+    private PolarGradientBandInterpolator runInterpolator;
+    private PolarGradientBandInterpolator crouchInterpolator;
+
+    public Action OnSetValues;
+
+    void Start()
+    {
+        InitializeGraph();
+        CreatePlayableGraph();
+    }
+
+    private void InitializeGraph()
+    {
+        _rigBuilder.Build();
+        graph = _rigBuilder.graph;
+        graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+    }
+
+    private void CreatePlayableGraph()
+    {
+        if (_targetAnimator == null) return;
+
+        (walkMixer, walkClips, walkInterpolator) = CreateBlendTree(WalkBlendClips);
+        (runMixer, runClips, runInterpolator) = CreateBlendTree(RunBlendClips);
+        (crouchMixer, crouchClips, crouchInterpolator) = CreateBlendTree(CrouchBlendClips);
+
+        locomotionMixer = AnimationMixerPlayable.Create(graph, 3);
+        graph.Connect(crouchMixer, 0, locomotionMixer, 0);
+        graph.Connect(walkMixer, 0, locomotionMixer, 1);
+        graph.Connect(runMixer, 0, locomotionMixer, 2);
+
+        var upperBodyPlayable = AnimationClipPlayable.Create(graph, UpperBodyClip);
+        upperBodyPlayable.SetApplyPlayableIK(_enableIKPass);
+        upperBodyPlayable.SetApplyFootIK(_enableAnimFootIK);
+        var layerMixer = AnimationLayerMixerPlayable.Create(graph, 2);
+        graph.Connect(locomotionMixer, 0, layerMixer, 0);
+        graph.Connect(upperBodyPlayable, 0, layerMixer, 1);
+        layerMixer.SetLayerMaskFromAvatarMask(1, UpperBodyMask);
+        layerMixer.SetInputWeight(0, 1f);
+        layerMixer.SetInputWeight(1, 1f);
+
+        var output = AnimationPlayableOutput.Create(graph, "Animation", _targetAnimator);
+        output.SetSourcePlayable(layerMixer);
+
+        graph.Play();
+    }
+
+    private (AnimationMixerPlayable, AnimationClipPlayable[], PolarGradientBandInterpolator)
+        CreateBlendTree(List<BlendClip> clips)
+    {
+        int count = clips.Count;
+        var mixer = AnimationMixerPlayable.Create(graph, count);
+        var clipPlayables = new AnimationClipPlayable[count];
+        float[][] samplePoints = new float[count][];
+
+        for (int i = 0; i < count; i++)
+        {
+            clipPlayables[i] = AnimationClipPlayable.Create(graph, clips[i].Clip);
+            clipPlayables[i].SetApplyPlayableIK(_enableIKPass);
+            clipPlayables[i].SetApplyFootIK(_enableAnimFootIK);
+            graph.Connect(clipPlayables[i], 0, mixer, i);
+            mixer.SetInputWeight(i, i == 0 ? 1f : 0f);
+            samplePoints[i] = new float[] { clips[i].Position.x, clips[i].Position.y };
+        }
+
+        var interpolator = new PolarGradientBandInterpolator(samplePoints);
+        return (mixer, clipPlayables, interpolator);
+    }
+
+    public override void NetworkFixedUpdate()
+    {
+        if (!Object.IsProxy)
+        {
+            AnimTime += Sandbox.FixedDeltaTime;
+
+            UpdateAnimation(AnimTime);
+        }
+    }
+
+    private void UpdateAnimation(float time)
+    {
+        if (!graph.IsValid()) return;
+
+        OnSetValues?.Invoke();
+
+        Vector2 currentMovement = new(MoveX, MoveY);
+        MovementSmooth = Vector2.Lerp(MovementSmooth, currentMovement, LerpSpeed * Sandbox.FixedDeltaTime);
+        StateValueSmooth = Mathf.Lerp(StateValueSmooth, StateValue, LerpSpeed * Sandbox.FixedDeltaTime);
+
+        float crouchWeight = Mathf.Clamp01(1f - (StateValueSmooth * 2f));
+        float walkWeight = Mathf.Clamp01(1f - Mathf.Abs(StateValueSmooth - 0.5f) * 2f);
+        float runWeight = Mathf.Clamp01((StateValueSmooth - 0.5f) * 2f);
+
+        locomotionMixer.SetInputWeight(0, crouchWeight);
+        locomotionMixer.SetInputWeight(1, walkWeight);
+        locomotionMixer.SetInputWeight(2, runWeight);
+
+        AnimateBlendTree(crouchMixer, crouchClips, crouchInterpolator);
+        AnimateBlendTree(walkMixer, walkClips, walkInterpolator);
+        AnimateBlendTree(runMixer, runClips, runInterpolator);
+
+        locomotionMixer.SetTime(AnimTime);
+    }
+
+    private void AnimateBlendTree(AnimationMixerPlayable mixer, AnimationClipPlayable[] clips, PolarGradientBandInterpolator interpolator)
+    {
+        if (!graph.IsValid()) return;
+
+        mixer.SetPropagateSetTime(true);
+        mixer.SetTime(AnimTime);
+
+        float[] weights = interpolator.Interpolate(new float[] { MovementSmooth.x, MovementSmooth.y }, true);
+        for (int i = 0; i < clips.Length; i++)
+        {
+            mixer.SetInputWeight(i, weights[i]);
+        }
+
+        graph.Evaluate();
+    }
+
+    public override void NetworkRender() { }
+
+    public override void NetworkDestroy()
+    {
+        if (graph.IsValid()) graph.Destroy();
+    }
+
+    void OnDestroy()
+    {
+        if (graph.IsValid()) graph.Destroy();
+    }
+
+
+    // OLD Stuff to be removed Below
+    #region
+    // private void CreateGraphOld()
+    // {
+    //     if (_targetAnimator == null || WalkBlendClips == null || WalkBlendClips.Count == 0)
+    //     {
+    //         Debug.LogError("TickAnimator: Assign Animator and BlendClips before starting!");
+    //         return;
+    //     }
+
+    //     int count = WalkBlendClips.Count;
     //     clips = new AnimationClip[count];
     //     float[][] samplePoints = new float[count][];
 
     //     for (int i = 0; i < count; i++)
     //     {
-    //         clips[i] = BlendClips[i].Clip;
-    //         samplePoints[i] = new float[] { BlendClips[i].Position.x, BlendClips[i].Position.y };
+    //         clips[i] = WalkBlendClips[i].Clip;
+    //         samplePoints[i] = new float[] { WalkBlendClips[i].Position.x, WalkBlendClips[i].Position.y };
     //     }
 
     //     interpolator = new PolarGradientBandInterpolator(samplePoints);
 
-    //     var output = AnimationPlayableOutput.Create(graph, "Animation", _targetAnimator);
-
+    //     // Base locomotion mixer
     //     mixer = AnimationMixerPlayable.Create(graph, count);
     //     clipPlayables = new AnimationClipPlayable[count];
 
@@ -608,264 +1132,80 @@ public class PlayerTickAnimController : NetworkBehaviour
     //         mixer.SetInputWeight(i, i == 0 ? 1f : 0f);
     //     }
 
-    //     output.SetSourcePlayable(mixer);
+    //     // Layer mixer (2 layers)
+    //     var layerMixer = AnimationLayerMixerPlayable.Create(graph, 2);
+
+    //     // Upper body clip
+    //     var upperBodyClipPlayable = AnimationClipPlayable.Create(graph, UpperBodyClip);
+    //     graph.Connect(mixer, 0, layerMixer, 0);
+    //     graph.Connect(upperBodyClipPlayable, 0, layerMixer, 1);
+
+    //     // Apply avatar mask to layer 1
+    //     layerMixer.SetLayerMaskFromAvatarMask(1, UpperBodyMask);
+
+    //     layerMixer.SetInputWeight(0, 1f);
+    //     layerMixer.SetInputWeight(1, 1f);
+
+    //     var output = AnimationPlayableOutput.Create(graph, "Animation", _targetAnimator);
+    //     output.SetSourcePlayable(layerMixer);
+
     //     graph.Play();
     // }
+    // private void SetAnimationOld(double currentNetworkTime)
+    // {
+    //     if (!graph.IsValid()) return;
 
-    private void CreateGraphSimple()
-    {
-        if (_targetAnimator == null || BlendClips == null || BlendClips.Count == 0)
-        {
-            Debug.LogError("TickAnimator: Assign Animator and BlendClips before starting!");
-            return;
-        }
+    //     // if (!TakeControl) networkTime += Time.deltaTime;
 
-        // Layer mixer (2 layers)
-        var layerMixer = AnimationLayerMixerPlayable.Create(graph, 2);
+    //     float cMoveX = Mathf.Clamp(MoveX, -1f, 1f);
+    //     float cMoveY = Mathf.Clamp(MoveY, -1f, 1f);
 
-        // Upper body clip
-        var upperBodyClipPlayable = AnimationClipPlayable.Create(graph, UpperBodyClip);
-        upperBodyClipPlayable.SetApplyPlayableIK(_animIKPass);
+    //     float[] input = new float[] { cMoveX, cMoveY };
+    //     float[] weights = interpolator.Interpolate(input, true);
 
-        // Blend clip mixer
-        mixer = AnimationMixerPlayable.Create(graph, BlendClips.Count);
+    //     if (weights == null || weights.Length != clips.Length)
+    //     {
+    //         weights = new float[clips.Length];
+    //         weights[0] = 1f;
+    //     }
 
+    //     // Compute weighted effective duration of the blend
+    //     double weightedDuration = 0.0;
+    //     double totalWeight = 0.0;
+    //     for (int i = 0; i < clips.Length; i++)
+    //     {
+    //         if (clips[i] == null || clips[i].length < 0.0001) continue;
+    //         weightedDuration += clips[i].length * weights[i];
+    //         totalWeight += weights[i];
+    //     }
+    //     if (totalWeight > 0.0001)
+    //         weightedDuration /= totalWeight;
+    //     else
+    //         weightedDuration = 1.0;
 
-        /// ----TODO--- Create sample points using blend clips
-        clips = new AnimationClip[BlendClips.Count];
-        float[][] samplePoints = new float[BlendClips.Count][];
+    //     // Advance manualTime based on network time delta and weighted duration
+    //     double deltaTime = currentNetworkTime - lastNetworkTime;
+    //     lastNetworkTime = currentNetworkTime;
 
-        for (int i = 0; i < BlendClips.Count; i++)
-        {
-            clips[i] = BlendClips[i].Clip;
-            samplePoints[i] = new float[] { BlendClips[i].Position.x, BlendClips[i].Position.y };
-        }
+    //     manualTime += (deltaTime / weightedDuration) * Speed;
+    //     manualTime %= 1.0;
 
-        // Create the interpolator for this blend tree (mixer) using sample points TODO
-        interpolator = new PolarGradientBandInterpolator(samplePoints);
+    //     // Apply manualTime to each clip
+    //     for (int i = 0; i < clipPlayables.Length; i++)
+    //     {
+    //         var clip = clips[i];
+    //         if (clip == null || clip.length < 0.0001) continue;
 
-        // Initalize playable clips list
-        clipPlayables = new AnimationClipPlayable[BlendClips.Count];
+    //         double t = manualTime * clip.length;
+    //         clipPlayables[i].SetTime(t);
+    //         clipPlayables[i].SetApplyFootIK(_animStateFootIK);
+    //         clipPlayables[i].SetApplyPlayableIK(_animIKPass);
 
-        // Setup mixer with clip playables
-        for (int i = 0; i < BlendClips.Count; i++)
-        {
-            // Create and setup this clip as a clip playable
-            clipPlayables[i] = AnimationClipPlayable.Create(graph, BlendClips[i].Clip);
-            clipPlayables[i].SetSpeed(1);
-            clipPlayables[i].SetTime(0);
-            clipPlayables[i].SetApplyPlayableIK(_animIKPass);
+    //         mixer.SetInputWeight(i, weights[i]);
+    //     }
 
-            // Connect it to the mixer and set the input weight
-            graph.Connect(clipPlayables[i], 0, mixer, i);
-            mixer.SetInputWeight(i, i == 0 ? 1f : 0f);
-        }
-        // var baseClipPlayable = AnimationClipPlayable.Create(graph, BlendClips[1].Clip);
-        // baseClipPlayable.SetSpeed(1);
-        // baseClipPlayable.SetTime(0);
-
-        // graph.Connect(baseClipPlayable, 0, mixer, 0);
-        // mixer.SetInputWeight(0, 1);
-
-        // Connect layers correctly
-        graph.Connect(mixer, 0, layerMixer, 0);
-        graph.Connect(upperBodyClipPlayable, 0, layerMixer, 1);
-
-        // Apply avatar mask to layer 1
-        layerMixer.SetLayerMaskFromAvatarMask(1, UpperBodyMask);
-
-        layerMixer.SetInputWeight(0, 1f);
-        layerMixer.SetInputWeight(1, 1f);
-
-        var output = AnimationPlayableOutput.Create(graph, "Animation", _targetAnimator);
-        output.SetSourcePlayable(layerMixer);
-
-        graph.Play();
-    }
-    private void CreateGraph()
-    {
-        if (_targetAnimator == null || BlendClips == null || BlendClips.Count == 0)
-        {
-            Debug.LogError("TickAnimator: Assign Animator and BlendClips before starting!");
-            return;
-        }
-
-        int count = BlendClips.Count;
-        clips = new AnimationClip[count];
-        float[][] samplePoints = new float[count][];
-
-        for (int i = 0; i < count; i++)
-        {
-            clips[i] = BlendClips[i].Clip;
-            samplePoints[i] = new float[] { BlendClips[i].Position.x, BlendClips[i].Position.y };
-        }
-
-        interpolator = new PolarGradientBandInterpolator(samplePoints);
-
-        // Base locomotion mixer
-        mixer = AnimationMixerPlayable.Create(graph, count);
-        clipPlayables = new AnimationClipPlayable[count];
-
-        for (int i = 0; i < count; i++)
-        {
-            var c = clips[i] != null ? clips[i] : new AnimationClip();
-            clipPlayables[i] = AnimationClipPlayable.Create(graph, c);
-            clipPlayables[i].SetSpeed(1.0);
-            clipPlayables[i].SetTime(0.0);
-            graph.Connect(clipPlayables[i], 0, mixer, i);
-            mixer.SetInputWeight(i, i == 0 ? 1f : 0f);
-        }
-
-        // Layer mixer (2 layers)
-        var layerMixer = AnimationLayerMixerPlayable.Create(graph, 2);
-
-        // Upper body clip
-        var upperBodyClipPlayable = AnimationClipPlayable.Create(graph, UpperBodyClip);
-        graph.Connect(mixer, 0, layerMixer, 0);
-        graph.Connect(upperBodyClipPlayable, 0, layerMixer, 1);
-
-        // Apply avatar mask to layer 1
-        layerMixer.SetLayerMaskFromAvatarMask(1, UpperBodyMask);
-
-        layerMixer.SetInputWeight(0, 1f);
-        layerMixer.SetInputWeight(1, 1f);
-
-        var output = AnimationPlayableOutput.Create(graph, "Animation", _targetAnimator);
-        output.SetSourcePlayable(layerMixer);
-
-        graph.Play();
-    }
-
-    private void SetupSystem()
-    {
-        manualTime = 0.0;
-        // lastNetworkTime = networkTime;
-        effectivePhaseSpeed = 0.0;
-    }
-
-    public override void NetworkFixedUpdate()
-    {
-        if (!Object.IsProxy)
-        {
-            OnSetValues.Invoke();
-
-            Movement = Vector2.Lerp(Movement, new Vector2(MoveX, MoveY), LerpSpeed * Sandbox.FixedDeltaTime);
-
-            AnimTime += Sandbox.FixedDeltaTime;
-
-            // SetAnimation(Sandbox.LocalInterpolation.Time);
-            // Animate(MoveX, MoveY, Sandbox.LocalInterpolation.Time);
-
-            // Animate(MoveX, MoveY, AnimTime);
-        }
-
-        Animate(Movement, AnimTime);
-    }
-
-    public override void NetworkRender()
-    {
-        // SetAnimation(Object.IsProxy ? Sandbox.RemoteInterpolation.Time : Sandbox.LocalInterpolation.Time);
-        // Animate(MoveX, MoveY, Object.IsProxy ? Sandbox.RemoteInterpolation.Time : Sandbox.LocalInterpolation.Time);
-
-        // Animate(MoveX, MoveY, AnimTime);
-    }
-
-    private void Animate(Vector2 movement, float time)
-    {
-        if (!graph.IsValid()) return;
-
-        // Set mixer time.
-        mixer.SetPropagateSetTime(true);
-        mixer.SetTime(time);
-
-        movement = Vector2.ClampMagnitude(movement, 1);
-
-        // moveX = Mathf.Clamp(moveX, -1f, 1f);
-        // moveY = Mathf.Clamp(moveY, -1f, 1f);
-
-        float[] input = new float[] { movement.x, movement.y };
-        float[] weights = interpolator.Interpolate(input, true);
-
-        for (int i = 0; i < clipPlayables.Length; i++)
-        {
-            mixer.SetInputWeight(i, weights[i]);
-        }
-
-
-
-        if (InvokeSyncLayers) _rigBuilder.SyncLayers();
-        graph.Evaluate();
-    }
-
-    private void SetAnimation(double currentNetworkTime)
-    {
-        if (!graph.IsValid()) return;
-
-        // if (!TakeControl) networkTime += Time.deltaTime;
-
-        float cMoveX = Mathf.Clamp(MoveX, -1f, 1f);
-        float cMoveY = Mathf.Clamp(MoveY, -1f, 1f);
-
-        float[] input = new float[] { cMoveX, cMoveY };
-        float[] weights = interpolator.Interpolate(input, true);
-
-        if (weights == null || weights.Length != clips.Length)
-        {
-            weights = new float[clips.Length];
-            weights[0] = 1f;
-        }
-
-        // Compute weighted effective duration of the blend
-        double weightedDuration = 0.0;
-        double totalWeight = 0.0;
-        for (int i = 0; i < clips.Length; i++)
-        {
-            if (clips[i] == null || clips[i].length < 0.0001) continue;
-            weightedDuration += clips[i].length * weights[i];
-            totalWeight += weights[i];
-        }
-        if (totalWeight > 0.0001)
-            weightedDuration /= totalWeight;
-        else
-            weightedDuration = 1.0;
-
-        // Advance manualTime based on network time delta and weighted duration
-        double deltaTime = currentNetworkTime - lastNetworkTime;
-        lastNetworkTime = currentNetworkTime;
-
-        manualTime += (deltaTime / weightedDuration) * Speed;
-        manualTime %= 1.0;
-
-        // Apply manualTime to each clip
-        for (int i = 0; i < clipPlayables.Length; i++)
-        {
-            var clip = clips[i];
-            if (clip == null || clip.length < 0.0001) continue;
-
-            double t = manualTime * clip.length;
-            clipPlayables[i].SetTime(t);
-            clipPlayables[i].SetApplyFootIK(_animStateFootIK);
-            clipPlayables[i].SetApplyPlayableIK(_animIKPass);
-
-            mixer.SetInputWeight(i, weights[i]);
-        }
-
-        if (InvokeSyncLayers) _rigBuilder.SyncLayers();
-        graph.Evaluate(0f);
-    }
-
-    public override void NetworkDestroy()
-    {
-        if (graph.IsValid()) graph.Destroy();
-    }
-
-    void OnDestroy()
-    {
-        if (graph.IsValid()) graph.Destroy();
-    }
-
-    void OnDisable()
-    {
-        if (graph.IsValid()) graph.Destroy();
-    }
+    //     if (InvokeSyncLayers) _rigBuilder.SyncLayers();
+    //     graph.Evaluate(0f);
+    // }
+    #endregion
 }

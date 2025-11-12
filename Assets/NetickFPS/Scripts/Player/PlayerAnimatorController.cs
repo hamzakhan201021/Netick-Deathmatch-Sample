@@ -84,8 +84,23 @@ public class PlayerAnimatorController : NetworkBehaviour
     {
         if (FetchInput(out PlayerInput input))
         {
-            _playerTickAnimController.MoveX = input.Movement.x;
-            _playerTickAnimController.MoveY = input.Movement.y;
+            // This doesn't work well because the animation doesn't expect it to be normalized, only clamped...
+            // Vector2 movementVal = Vector2.ClampMagnitude(input.Movement, 1);
+            Vector2 movementVal = ClampVector2(input.Movement, -1, 1);
+            
+            _playerTickAnimController.MoveX = movementVal.x;
+            _playerTickAnimController.MoveY = movementVal.y;
+
+            // 0 for crouch, 0.5 for walk, 1 for sprint/run
+            // Default to walk
+            float stateValue = 0.5f;
+
+            // set to 1 if sprinting
+            if (input.Sprinting) stateValue = 1;
+            // set to 0 is crouching
+            if (_playerMovementController.IsCrouching) stateValue = 0;
+
+            _playerTickAnimController.StateValue = stateValue;
         }
     }
 
@@ -116,5 +131,13 @@ public class PlayerAnimatorController : NetworkBehaviour
         _animator.SetFloat(_standingHash, _standingValue);
         _animator.SetFloat(_walkOrRunHash, _walkOrRunValue);
         _animator.SetBool(_groundedHash, _playerMovementController.GetGrounded());
+    }
+
+    private Vector2 ClampVector2(Vector2 value, float min, float max)
+    {
+        value.x = Mathf.Clamp(value.x, min, max);
+        value.y = Mathf.Clamp(value.y, min, max);
+
+        return value;
     }
 }

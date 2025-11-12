@@ -6017,7 +6017,7 @@ MonoBehaviour:
   _rigBuilder: {fileID: 60133863258781120}
   _targetAnimator: {fileID: 1844307678191643506}
   InvokeSyncLayers: 1
-  BlendClips:
+  WalkBlendClips:
   - Clip: {fileID: 7400000, guid: 6077cbf0678c44cc0bb190f5180d6008, type: 2}
     Position: {x: 0, y: 0}
   - Clip: {fileID: 7400000, guid: 23f76691c4cc14195a622fe385c1d76c, type: 2}
@@ -6036,18 +6036,52 @@ MonoBehaviour:
     Position: {x: -1, y: 0}
   - Clip: {fileID: 7400000, guid: 26cf0bbbcbebc4fd5a94c886132a0e67, type: 2}
     Position: {x: 1, y: 0}
+  RunBlendClips:
+  - Clip: {fileID: 7400000, guid: 6077cbf0678c44cc0bb190f5180d6008, type: 2}
+    Position: {x: 0, y: 0}
+  - Clip: {fileID: 7400000, guid: 2b6da418d63d9486ebf4d07a7e386942, type: 2}
+    Position: {x: 0, y: 1}
+  - Clip: {fileID: 7400000, guid: 7d9e9efe97c4a453c92178f4692f7b3b, type: 2}
+    Position: {x: -1, y: 1}
+  - Clip: {fileID: 7400000, guid: fca5fc462b7934695a8bd8579abc0503, type: 2}
+    Position: {x: 1, y: 1}
+  - Clip: {fileID: 7400000, guid: 6a05da54935cf4ec0a8629dc13bdeec4, type: 2}
+    Position: {x: 0, y: -1}
+  - Clip: {fileID: 7400000, guid: 7998d62edd6eb43ab9185f590a798f35, type: 2}
+    Position: {x: -1, y: -1}
+  - Clip: {fileID: 7400000, guid: 0cdfec4f417a84599ab1ca092d97feb4, type: 2}
+    Position: {x: 1, y: -1}
+  - Clip: {fileID: 7400000, guid: 50e12eb0a5c704cf0942337eeaf15282, type: 2}
+    Position: {x: -1, y: 0}
+  - Clip: {fileID: 7400000, guid: 06ca1a265fc1740c6a0ffecf333dc73f, type: 2}
+    Position: {x: 1, y: 0}
+  CrouchBlendClips:
+  - Clip: {fileID: 7400000, guid: 42e677c55a84e49d29cbe688b8f9b536, type: 2}
+    Position: {x: 0, y: 0}
+  - Clip: {fileID: 7400000, guid: 7ade10123a7ef443d9b11764004278f9, type: 2}
+    Position: {x: 0, y: 1}
+  - Clip: {fileID: 7400000, guid: a76a906567f394ed1ba8f3e2fcc1b37c, type: 2}
+    Position: {x: -1, y: 1}
+  - Clip: {fileID: 7400000, guid: 99d1d17f0410947b1a67dfda91f04e45, type: 2}
+    Position: {x: 1, y: 1}
+  - Clip: {fileID: 7400000, guid: eb07a8591e4f94ce9a51857e9aecc44a, type: 2}
+    Position: {x: 0, y: -1}
+  - Clip: {fileID: 7400000, guid: c9168b4c9377045d5938c620368f0b20, type: 2}
+    Position: {x: -1, y: -1}
+  - Clip: {fileID: 7400000, guid: 89758b6ee0eef4b19850046145a1f769, type: 2}
+    Position: {x: 1, y: -1}
+  - Clip: {fileID: 7400000, guid: 9d7cc59b353914c29bc75650cebfbeef, type: 2}
+    Position: {x: -1, y: 0}
+  - Clip: {fileID: 7400000, guid: c2bdb0235934940e7a60e7ff267e9e7e, type: 2}
+    Position: {x: 1, y: 0}
   UpperBodyClip: {fileID: 7400000, guid: 0eebbd4f48b294c8cb7f160b42da93c2, type: 2}
   UpperBodyMask: {fileID: 31900000, guid: ff0501eb1bfaf402d886e51ce2035f78, type: 2}
+  LerpSpeed: 10
   <MoveX>k__BackingField: 0
   <MoveY>k__BackingField: 0
-  <Movement>k__BackingField: {x: 0, y: 0}
-  LerpSpeed: 10
-  Speed: 1
-  _animStateFootIK: 0
-  _animIKPass: 1
-  TakeControl: 0
-  ContinueUpdatingEvenWhenTakeControl: 0
-  Reverse: 0
+  <StateValue>k__BackingField: 1
+  <MovementSmooth>k__BackingField: {x: 0, y: 0}
+  <StateValueSmooth>k__BackingField: 0
   <AnimTime>k__BackingField: 0
 --- !u!114 &60133863258781120
 MonoBehaviour:
