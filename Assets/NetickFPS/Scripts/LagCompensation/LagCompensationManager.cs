@@ -5,6 +5,25 @@ using Netick;
 using PG.LagCompensation;
 
 // TODO use namespace, cleanup .. ..
+
+public struct TickInterpolation
+{
+    public int To;
+    public int From;
+    public float InterpAlpha;
+
+    public TickInterpolation(int to, float interpAlpha)
+    {
+        To = to;
+        From = to - 1;
+        InterpAlpha = interpAlpha;
+    }
+    
+    public TickInterpolation Add(int value)
+    {
+        return new TickInterpolation(To + value, InterpAlpha);
+    }
+}
 public class LagCompensationManager : NetworkBehaviour
 {
 
@@ -56,14 +75,16 @@ public class LagCompensationManager : NetworkBehaviour
     [SerializeField] private GameObject _clientCubeLagComp;
     [Tooltip("Time before destroying the spawned object")]
     [SerializeField] private float _cubeCycleDuration = 15;
+    [SerializeField] private int _tickOffset = 0;
+    [SerializeField] public bool _useInterpData = false;
 
     //private static readonly Dictionary<Collider, ColliderHistory> _collider3DStates = new();
 
     //PhysicsScene _physicsScene;
     //const string PHYSICS_SCENE_NAME = "RollbackScene";
 
-    private readonly List<Collider> _colliders3D = new();
-    private readonly Dictionary<Collider, ColliderHistory> _collider3DStates = new();
+    // private readonly List<Collider> _colliders3D = new();
+    // private readonly Dictionary<Collider, ColliderHistory> _collider3DStates = new();
 
     // Debugging:
     private readonly Dictionary<int, TransformFrameData> clientHits = new();
@@ -93,8 +114,8 @@ public class LagCompensationManager : NetworkBehaviour
         //Collider collider = c.GetComponent<Collider>();
 
         // TODO remove all useless code, cleanup project to use only custom lag comp
-        _collider3DStates.Add(c.Collider, new ColliderHistory(c.Collider, historyLength));
-        _colliders3D.Add(c.Collider);
+        // _collider3DStates.Add(c.Collider, new ColliderHistory(c.Collider, historyLength));
+        // _colliders3D.Add(c.Collider);
 
         //_collider3DStates.Add(collider, new ColliderHistory
         //{
@@ -107,8 +128,8 @@ public class LagCompensationManager : NetworkBehaviour
 
     public void Unregister(ColliderRollback c)
     {
-        _collider3DStates.Remove(c.Collider);
-        _colliders3D.Remove(c.Collider);
+        // _collider3DStates.Remove(c.Collider);
+        // _colliders3D.Remove(c.Collider);
     }
 
     // TODO remove this
@@ -173,12 +194,12 @@ public class LagCompensationManager : NetworkBehaviour
 
         // Don't record when there is nothing to record // lol
         // exit early.
-        if (_collider3DStates.Count == 0) return;
+        // if (_collider3DStates.Count == 0) return;
 
-        for (int i = 0; i < _colliders3D.Count; i++)
-        {
-            _collider3DStates[_colliders3D[i]].Record(Sandbox.Tick);
-        }
+        // for (int i = 0; i < _colliders3D.Count; i++)
+        // {
+        // _collider3DStates[_colliders3D[i]].Record(Sandbox.Tick);
+        // }
 
         // END
 
@@ -341,99 +362,101 @@ public class LagCompensationManager : NetworkBehaviour
     public bool RaycastCR(Ray ray, int preciseTick, out RaycastHit hit, Collider[] ignoreColliders, LayerMask layersToHit)
     {
         hit = default;
-        //return false;
-        // Get target tick, e.g. -1 for some reason gets the correct tick idk why.
-        int targetTick = preciseTick - 1;
+        return false;
+        // hit = default;
+        // //return false;
+        // // Get target tick, e.g. -1 for some reason gets the correct tick idk why.
+        // int targetTick = preciseTick - 1;
 
-        var originalStates = new List<(Transform transform, Vector3 pos, Quaternion rot, Vector3 scale)>(_colliders3D.Count);
+        // var originalStates = new List<(Transform transform, Vector3 pos, Quaternion rot, Vector3 scale)>(_colliders3D.Count);
 
-        //Debug.Log("The target tick is " + targetTick);
-        //Debug.Log("More tick values coming ");
+        // //Debug.Log("The target tick is " + targetTick);
+        // //Debug.Log("More tick values coming ");
 
-        //Debug.Log(interpData.RemoteInterpFrom);
-        //Debug.Log(interpData.RemoteInterpTo);
-        //Debug.Log(interpData.RemoteInterpAlpha);
-        //interpData.RemoteInterpFrom += 3;
-        //interpData.RemoteInterpTo += 3;
+        // //Debug.Log(interpData.RemoteInterpFrom);
+        // //Debug.Log(interpData.RemoteInterpTo);
+        // //Debug.Log(interpData.RemoteInterpAlpha);
+        // //interpData.RemoteInterpFrom += 3;
+        // //interpData.RemoteInterpTo += 3;
 
-        foreach (var col in _colliders3D)
-        {
-            if (!col) continue;
-
-
-            /// New list ignore
-            bool ignore = false;
-
-            foreach (Collider collider in ignoreColliders)
-            {
-                if (col == collider)
-                {
-                    ignore = true;
-
-                    break;
-                }
-            }
-
-            if (ignore) continue;
-
-            // older one col support only.
-
-            //if (ignoreCollider && col == ignoreCollider) continue; // TODO use input source instead
-
-            var tr = col.transform;
-            originalStates.Add((tr, tr.position, tr.rotation, tr.localScale));
-
-            if (_collider3DStates.TryGetValue(col, out var history))
-            {
-                if (history.GetStateAtOrBefore(targetTick, out var state))
-                {
-                    tr.SetPositionAndRotation(state.position, state.rotation);
-                    tr.localScale = state.scale;
-                }
-                //if (history.GetStateAtOrBefore(interpData.RemoteInterpFrom, out var fromState) && history.GetStateAtOrBefore(interpData.RemoteInterpTo, out var toState))
-                //{
-                //    var state = fromState.Interpolate(toState, interpData.RemoteInterpAlpha);
-
-                //    tr.SetPositionAndRotation(state.position, state.rotation);
-                //    tr.localScale = state.scale;
-                //}
-            }
-        }
-
-        Physics.SyncTransforms();
-
-        bool hitFound = Physics.Raycast(ray, out hit, Mathf.Infinity, layersToHit, QueryTriggerInteraction.Ignore);
+        // foreach (var col in _colliders3D)
+        // {
+        //     if (!col) continue;
 
 
-        // Server temporary object for visual
-        if (hitFound)
-        {
-            if (hit.transform.TryGetComponent(out ColliderRollback cR))
-            {
-                SendClientHitObjectDataRpc(cR.transform.position, cR.transform.rotation, true, preciseTick);
+        //     /// New list ignore
+        //     bool ignore = false;
 
-                //if (cR.RootTransform.TryGetComponent(out PlayerHealthController playerHealthController))
-                //{
-                //    // For Visualising
+        //     foreach (Collider collider in ignoreColliders)
+        //     {
+        //         if (col == collider)
+        //         {
+        //             ignore = true;
+
+        //             break;
+        //         }
+        //     }
+
+        //     if (ignore) continue;
+
+        //     // older one col support only.
+
+        //     //if (ignoreCollider && col == ignoreCollider) continue; // TODO use input source instead
+
+        //     var tr = col.transform;
+        //     originalStates.Add((tr, tr.position, tr.rotation, tr.localScale));
+
+        //     if (_collider3DStates.TryGetValue(col, out var history))
+        //     {
+        //         if (history.GetStateAtOrBefore(targetTick, out var state))
+        //         {
+        //             tr.SetPositionAndRotation(state.position, state.rotation);
+        //             tr.localScale = state.scale;
+        //         }
+        //         //if (history.GetStateAtOrBefore(interpData.RemoteInterpFrom, out var fromState) && history.GetStateAtOrBefore(interpData.RemoteInterpTo, out var toState))
+        //         //{
+        //         //    var state = fromState.Interpolate(toState, interpData.RemoteInterpAlpha);
+
+        //         //    tr.SetPositionAndRotation(state.position, state.rotation);
+        //         //    tr.localScale = state.scale;
+        //         //}
+        //     }
+        // }
+
+        // Physics.SyncTransforms();
+
+        // bool hitFound = Physics.Raycast(ray, out hit, Mathf.Infinity, layersToHit, QueryTriggerInteraction.Ignore);
 
 
-                //}
-            }
-        }
+        // // Server temporary object for visual
+        // if (hitFound)
+        // {
+        //     if (hit.transform.TryGetComponent(out ColliderRollback cR))
+        //     {
+        //         SendClientHitObjectDataRpc(cR.transform.position, cR.transform.rotation, true, preciseTick);
+
+        //         //if (cR.RootTransform.TryGetComponent(out PlayerHealthController playerHealthController))
+        //         //{
+        //         //    // For Visualising
+
+
+        //         //}
+        //     }
+        // }
 
 
 
 
-        for (int i = 0; i < originalStates.Count; i++)
-        {
-            var s = originalStates[i];
-            s.transform.SetPositionAndRotation(s.pos, s.rot);
-            s.transform.localScale = s.scale;
-        }
+        // for (int i = 0; i < originalStates.Count; i++)
+        // {
+        //     var s = originalStates[i];
+        //     s.transform.SetPositionAndRotation(s.pos, s.rot);
+        //     s.transform.localScale = s.scale;
+        // }
 
-        Physics.SyncTransforms();
+        // Physics.SyncTransforms();
 
-        return hitFound;
+        // return hitFound;
     }
 
     // TODO make precision check work.
@@ -441,7 +464,8 @@ public class LagCompensationManager : NetworkBehaviour
     /// Raycast at a specific time using custom (LC) Lag Compensation
     /// </summary>
     /// <returns></returns>
-    public bool RaycastLC(Ray ray, int tick, out LCHitInfo hitInfo, float range, HitColliderCollection exclude = null)
+    // public bool RaycastLC(Ray ray, int tick, out LCHitInfo hitInfo, float range, HitColliderCollection exclude = null)
+    public bool RaycastLC(Ray ray, int tick, TickInterpolation interpData, out LCHitInfo hitInfo, float range, HitColliderCollection exclude = null, Vector3 position = default, Quaternion rotation = default)
     {
         bool hitFound = false;
 
@@ -451,13 +475,26 @@ public class LagCompensationManager : NetworkBehaviour
 
         // For some reason tick - 1 gives the least error idk and not sure why XD
         // but who cares if it's the best just using it for now, if you know something better don't hesitate to let me know.
-        int simTick = tick - 1;
+        // int simTick = tick - 1;// CURRENT WORKING stuff
+
         //int simTick = tick;
 
-        ColliderCastSystem.Simulate(simTick);
+        // interpData.Add(5);
+
+        // ColliderCastSystem.Simulate(interpData);
+        Debug.Log($"All ticks, interp from {interpData.From} to {interpData.To} Alpha {interpData.InterpAlpha} and tick {tick}");
+
+        if (_useInterpData)
+        {
+            ColliderCastSystem.Simulate(interpData.Add(_tickOffset));
+        }
+        else
+        {
+            ColliderCastSystem.Simulate(tick + _tickOffset);
+        }
 
         //if (ColliderCastSystem.ColliderCastFromCachedData(ray.origin, ray.direction, range, out ColliderCastHit ccHit, out HitColliderCollection hitCollection, out int index))
-        if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, range, out ColliderCastHit ccHit, out HitColliderCollection hitCollection, out int index, exclude, true))
+        if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, range, _useInterpData, out ColliderCastHit ccHit, out HitColliderCollection hitCollection, out int index, exclude, true))
         {
             hitInfo.CCHit = ccHit;
             hitInfo.HitColliderCollection = hitCollection;
@@ -465,9 +502,19 @@ public class LagCompensationManager : NetworkBehaviour
 
             HitColliderGeneric hitCol = hitCollection.GetHitColliderAtIndex(index);
 
+            Debug.Log("Trying to get and compare test");
 
+            float distance = Vector3.Distance(position, hitCol.GetCachedTRSData().position);
+            float angle = Quaternion.Angle(rotation, hitCol.GetCachedTRSData().rotation);
 
-            SendClientHitObjectDataRpc(hitCol.GetCachedTRSData().position, hitCol.GetCachedTRSData().rotation, true, tick);
+            // if (_logData)
+            // {
+            //     Debug.Log($"[LagComp] Shot {interpData.To}: position error {distance:F4}m");
+            //     Debug.Log($"[LagComp] Shot {interpData.To}: rotation error {angle:F4}°");
+            // }
+
+            // TODO Replace rpc with proper check.
+            SendClientHitObjectDataRpc(hitCol.GetCachedTRSData().position, hitCol.GetCachedTRSData().rotation, true, _useInterpData ? interpData.To : tick);
 
 
             // TODO etc
@@ -581,7 +628,7 @@ public class LagCompensationManager : NetworkBehaviour
 
         autoDestroy?.Begin(_cubeCycleDuration);
     }
-    
+
 
     //public bool Raycast(int tick, Vector3 position, Vector3 direction, float length)
     //{

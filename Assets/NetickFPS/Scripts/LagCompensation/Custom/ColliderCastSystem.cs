@@ -73,7 +73,7 @@ namespace PG.LagCompensation
         /// <param name="range"></param>
         /// <param name="hit"></param>
         /// <returns></returns>
-        public static bool ColliderCastTransformWithExclusion(Vector3 origin, Vector3 direction, float range, out ColliderCastHit hit, out HitColliderCollection collection, out int hitColliderIndex, HitColliderCollection exclude, bool useCachedTransforms)
+        public static bool ColliderCastTransformWithExclusion(Vector3 origin, Vector3 direction, float range, bool useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int hitColliderIndex, HitColliderCollection exclude, bool useCachedTransforms)
         {
             hit = ColliderCastHit.Zero;
             collection = null;
@@ -92,7 +92,7 @@ namespace PG.LagCompensation
                         {
                             // New function call.
                             //SimulationObjects[i].ORIGINALSimulateFully(); // cache the locations/rotations of all managed hitColliders (if it hasn't been done already)
-                            SimulationObjects[i].SimulateFully();
+                            SimulationObjects[i].SimulateFully(useInterpData);
 
                             if (SimulationObjects[i].ColliderCastInterpolatedFrameData(origin, direction, range, out ColliderCastHit newHit, out int newHitColliderIndex))
                             {
@@ -149,7 +149,7 @@ namespace PG.LagCompensation
         /// <param name="range"></param>
         /// <param name="hit"></param>
         /// <returns></returns>
-        public static bool ColliderCastInterpolatedFrameData(Vector3 origin, Vector3 direction, float range, out ColliderCastHit hit)
+        public static bool ColliderCastInterpolatedFrameData(Vector3 origin, Vector3 direction, float range, bool useInterpData, out ColliderCastHit hit)
         {
             hit = ColliderCastHit.Zero;
 
@@ -161,7 +161,7 @@ namespace PG.LagCompensation
                     {
                         // New function
                         //SimulationObjects[i].ORIGINALSimulateFully(); // cache the locations/rotations of all managed hitColliders (if it hasn't been done already)
-                        SimulationObjects[i].SimulateFully();
+                        SimulationObjects[i].SimulateFully(useInterpData);
 
                         if (SimulationObjects[i].ColliderCastInterpolatedFrameData(origin, direction, range, out ColliderCastHit newHit, out int newHitColliderIndex))
                         {
@@ -185,7 +185,7 @@ namespace PG.LagCompensation
         /// Check cached postion/rotation. Cast against all HitColliders in the scene
         /// </summary>
         /// <returns></returns>
-        public static bool ColliderCastFromCachedData(Vector3 origin, Vector3 direction, float range, out ColliderCastHit hit, out HitColliderCollection hitCollection, out int hitColliderIndex)
+        public static bool ColliderCastFromCachedData(Vector3 origin, Vector3 direction, float range, bool useInterpData, out ColliderCastHit hit, out HitColliderCollection hitCollection, out int hitColliderIndex)
         {
             hit = ColliderCastHit.Zero;
             hitColliderIndex = -1;
@@ -199,7 +199,7 @@ namespace PG.LagCompensation
                     {
                         // New function
                         //SimulationObjects[i].ORIGINALSimulateFully(); // cache the locations/rotations of all managed hitColliders (if it hasn't been done already)
-                        SimulationObjects[i].SimulateFully();
+                        SimulationObjects[i].SimulateFully(useInterpData);
 
                         if (SimulationObjects[i].ColliderCastInterpolatedFrameData(origin, direction, range, out ColliderCastHit newHit, out int newHitColliderIndex))
                         {
@@ -240,12 +240,26 @@ namespace PG.LagCompensation
         /// At first only simulate the collection (which is a large sphere collider acting as the bounding sphere for all managed colliders)
         /// </summary>
         /// <param name="tick"></param>
+        // public static void Simulate(int tick)
+        public static void Simulate(TickInterpolation interpData)
+        {
+            for (int i = 0; i < SimulationObjects.Count; i++)
+            {
+                // SimulationObjects[i].SetSimulationTick = tick;
+                // SimulationObjects[i].CachePositionRotation(tick);
+                SimulationObjects[i].SetSimulationInterpData = interpData;
+                SimulationObjects[i].CachePositionRotation(interpData);
+            }
+        }
+
         public static void Simulate(int tick)
         {
             for (int i = 0; i < SimulationObjects.Count; i++)
             {
                 SimulationObjects[i].SetSimulationTick = tick;
                 SimulationObjects[i].CachePositionRotation(tick);
+                // SimulationObjects[i].SetSimulationInterpData = interpData;
+                // SimulationObjects[i].CachePositionRotation(interpData);
             }
         }
 

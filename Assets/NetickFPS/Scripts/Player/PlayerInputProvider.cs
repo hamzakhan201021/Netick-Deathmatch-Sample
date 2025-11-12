@@ -28,9 +28,15 @@ public class PlayerInputProvider : NetworkEventsListener
 
         // TODO (try something else) set client tick.
 
-        //input.HitPosition = _pSC.HitPosition;
-        //input.HitRotation = _pSC.HitRotation;
+        input.HitPosition = _pSC.HitPosition;
+        input.HitRotation = _pSC.HitRotation;
+
         input.ClientTick = Sandbox.AuthoritativeTick;
+        input.InterpolationTickTo = Sandbox.RemoteInterpolation.To;
+        input.InterpolationTickFrom = Sandbox.RemoteInterpolation.From;
+        input.InterpolationTickTo2 = sandbox.RemoteInterpolation.To;
+        input.InterpolationTickFrom2 = sandbox.RemoteInterpolation.From;
+        // input.InterpolationTickFrom = 
 
 
         //if (tg.isOn)

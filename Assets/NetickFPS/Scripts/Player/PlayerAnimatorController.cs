@@ -14,6 +14,7 @@ public class PlayerAnimatorController : NetworkBehaviour
 
     [Header("Player Movement Controller")]
     [SerializeField] private PlayerMovementController _playerMovementController;
+    [SerializeField] private PlayerTickAnimController _playerTickAnimController;
 
     [Header("Animation Smoothing")]
     [SerializeField] private float _smoothMoveInputSpeed = 0.1f;
@@ -46,6 +47,12 @@ public class PlayerAnimatorController : NetworkBehaviour
     public override void NetworkStart()
     {
         SetupForAnimation();
+        if (!IsProxy) _playerTickAnimController.OnSetValues += SetValues;
+    }
+
+    public override void NetworkDestroy()
+    {
+        if (!IsProxy) _playerTickAnimController.OnSetValues -= SetValues;
     }
 
     private void SetupForAnimation()
@@ -71,6 +78,17 @@ public class PlayerAnimatorController : NetworkBehaviour
         }
     }
 
+    // This is a registered function of tick anim controller to set the values needed.
+    // It's registered manually in network start
+    private void SetValues()
+    {
+        if (FetchInput(out PlayerInput input))
+        {
+            _playerTickAnimController.MoveX = input.Movement.x;
+            _playerTickAnimController.MoveY = input.Movement.y;
+        }
+    }
+
     public override void NetworkRender()
     {
         if (!EnableComponent) return;
@@ -81,7 +99,8 @@ public class PlayerAnimatorController : NetworkBehaviour
         _currentInputVector = Vector2.SmoothDamp(_currentInputVector, Movement, ref _smoothInputVelocity, _smoothMoveInputSpeed);
 
         // 1 for standing, 0 for crouching blend tree value...
-        float sTarget = _playerMovementController.IsCrouching ? 0 : 1;
+        // float sTarget = _playerMovementController.IsCrouching ? 0 : 1;
+        float sTarget = 1;
 
         _standingValue = Mathf.Lerp(_standingValue, sTarget, _animationLerpSpeed * Sandbox.DeltaTime);
 

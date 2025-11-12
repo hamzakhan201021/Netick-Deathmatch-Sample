@@ -107,9 +107,9 @@ public class PlayerMovementController : NetworkedCharacterController
         var networkInput = Sandbox.GetInput<PlayerInput>();
 
 
-        _autoMoverUI.SetActive(_useAutoMover);
-        
-        if (_autoMove.isOn && _useAutoMover)
+        if (_autoMoverUI != null) _autoMoverUI.SetActive(_useAutoMover);
+
+        if (_autoMove != null && _autoMove.isOn && _useAutoMover)
         {
             networkInput.Movement = new Vector2(_directionAMove.isOn ? 1 : -1, 0);
         }
@@ -128,7 +128,7 @@ public class PlayerMovementController : NetworkedCharacterController
 
         if (!_cursorLocked) mouseInputsYP = Vector2.zero;
 
-        if (_autoAimOnTarget.isOn)
+        if (_autoAimOnTarget != null && _autoAimOnTarget.isOn)
         {
             // TODO improve targetting etc. (it's for testing anyways)
 
@@ -255,6 +255,59 @@ public class PlayerMovementController : NetworkedCharacterController
 
             Velocity = _velocity;
         }
+
+        // ManageMovement();
+    }
+
+    private void ManageMovement()
+    {
+        Vector3 targetVelocity = Vector3.zero;
+        bool didJump = false;
+
+        if (FetchInput(out PlayerInput input))
+        {
+            // Apply yaw rotation (without touching pitch)
+            if (_autoAimOnTarget != null && _autoAimOnTarget.isOn)
+            {
+                YawPitch = ClampAngles(input.YawPitch.x, input.YawPitch.y);
+            }
+            else
+            {
+                YawPitch = ClampAngles(YawPitch.x + input.YawPitch.x, YawPitch.y + input.YawPitch.y);
+            }
+
+            float sprintMultiplier = input.Sprinting ? SprintMultiplier : 1f;
+            if (input.JumpInput)
+                didJump = true;
+
+            // Local move direction in world space
+            Vector2 moveInput = Vector2.ClampMagnitude(input.Movement, 1f);
+            Vector3 move = new Vector3(moveInput.x, 0, moveInput.y);
+            targetVelocity = transform.TransformDirection(move) * WalkingSpeed * sprintMultiplier;
+        }
+
+        if (Sandbox.IsServer || IsPredicted)
+        {
+            bool groundedBefore = IsGrounded();
+
+            Vector3 vel = Velocity;
+            vel.y = 0;
+            vel = Vector3.MoveTowards(vel, targetVelocity, AccelerationRate * Sandbox.FixedDeltaTime);
+            vel.y = Velocity.y;
+
+            if (groundedBefore && didJump)
+                vel.y = JumpStrength;
+
+            vel.y += GravityAcceleration * Sandbox.FixedDeltaTime;
+
+            _CC.Move(vel * Sandbox.FixedDeltaTime);
+
+            bool groundedAfter = IsGrounded();
+            if (groundedAfter)
+                vel.y = 0;
+
+            Velocity = vel;
+        }
     }
 
     public override void NetworkRender()
@@ -301,6 +354,8 @@ public class PlayerMovementController : NetworkedCharacterController
         //    }
         //}
 
+        // THIS WAS COMMENTED
+
         // on the player transform, we apply yaw.
         if (isProxy)
         {
@@ -312,7 +367,7 @@ public class PlayerMovementController : NetworkedCharacterController
         }
 
         // on the weapon/camera holder, we apply the pitch angle.
-        //_cameraParent.localEulerAngles = new Vector3(camAngles.y, 0, 0);
+        // _cameraParent.localEulerAngles = new Vector3(camAngles.y, 0, 0);
 
         _camAngles = camAngles;
     }
@@ -330,7 +385,6 @@ public class PlayerMovementController : NetworkedCharacterController
             angle -= 360F;
         return Mathf.Clamp(angle, min, max);
     }
-
     public bool GetGrounded()
     {
         return IsGrounded();
@@ -338,22 +392,6 @@ public class PlayerMovementController : NetworkedCharacterController
 
     public void AddRecoilRotation(float amount)
     {
-        YawPitch = new Vector2(YawPitch.x, YawPitch.y + amount);
+        // YawPitch = new Vector2(YawPitch.x, YawPitch.y + amount);
     }
 }
-
-// TODO remove this.
-//public struct PlayerInput : INetworkInput
-//{
-//    public Vector2 Movement;
-//    public Vector2 YawPitch;
-
-//    public bool Sprinting;
-//    public bool JumpInput;
-
-//    public bool ShootInput;
-
-//    // Shooting stuff
-
-//    public int ClientTick;
-//}

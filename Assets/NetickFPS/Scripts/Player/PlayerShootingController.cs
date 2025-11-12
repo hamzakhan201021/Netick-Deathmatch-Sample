@@ -63,8 +63,8 @@ public class PlayerShootingController : NetworkBehaviour
     [SerializeField] private TMP_Text _ammoText;
     [SerializeField] private GameObject _reloadingOverlay;
 
-    //[HideInInspector] public Vector3 HitPosition;
-    //[HideInInspector] public Quaternion HitRotation;
+    [HideInInspector] public Vector3 HitPosition;
+    [HideInInspector] public Quaternion HitRotation;
     //[HideInInspector] public int HitAuthTick;
 
     /// <summary>
@@ -280,12 +280,17 @@ public class PlayerShootingController : NetworkBehaviour
 
             // Debugging
             Debug.Log("Data tick diff, input tick from = " + input.ClientTick + " server tick " + Sandbox.AuthoritativeTick);
+            Debug.Log("Sandbox Remote Interpolation Tick to is = " + input.InterpolationTickTo);
+            Debug.Log("Sandbox Remote Interpolation Tick from is = " + input.InterpolationTickFrom);
+            Debug.Log("Sandbox Remote Interpolation Tick to 2 is = " + input.InterpolationTickTo2);
+            Debug.Log("Sandbox Remote Interpolation Tick from 2 is = " + input.InterpolationTickFrom2);
 
             //ColliderRollback cR = GetComponentInChildren<ColliderRollback>();
+            TickInterpolation interpData = new TickInterpolation(input.InterpolationTickTo, input.InterpolationAlpha);
 
             // TODO make rollback module take input source
             //if (_lagCompManager.RaycastCR(ray, input.ClientTick, out RaycastHit hitInfo, _rollbackColliders.ToArray(), _shootableLayerMask))
-            if (_lagCompManager.RaycastLC(ray, input.ClientTick, out LCHitInfo hitInfo, _maxDistance, _hitColliderCollection))
+            if (_lagCompManager.RaycastLC(ray, input.ClientTick, interpData, out LCHitInfo hitInfo, _maxDistance, _hitColliderCollection))
             {
                 Debug.Log("Hit was found");
 
@@ -326,17 +331,20 @@ public class PlayerShootingController : NetworkBehaviour
         else
         {
 
-            if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
+            bool useInterpData = Sandbox.GetComponent<LagCompensationManager>()._useInterpData;
+
+            if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
             {
                 HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
 
                 // TODO remove XD
                 // this is for the precision check data
-                //HitPosition = col.transform.position;
-                //HitRotation = col.transform.rotation;
+                // HitPosition = col.transform.position;
+                // HitRotation = col.transform.rotation;
                 //HitAuthTick = Sandbox.AuthoritativeTick;
 
-                _lagCompManager.SendClientHitObjectDataRpc(col.transform.position, col.transform.rotation, false, Sandbox.AuthoritativeTick);
+                _lagCompManager.SendClientHitObjectDataRpc(col.transform.position, col.transform.rotation, false, useInterpData ? input.InterpolationTickTo : input.ClientTick);
+
             }
 
             //bool didHit = Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity, _shootableLayerMask);

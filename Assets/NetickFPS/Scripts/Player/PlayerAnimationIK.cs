@@ -37,7 +37,7 @@ public class PlayerAnimationIK : MonoBehaviour
     [SerializeField] private bool _checkLayer = false;
     [SerializeField] private PlayerMovementController _playerMovementController;
 
-    [SerializeField] private List<RotationBoneCustom> _rotationBones;
+    // [SerializeField] private List<RotationBoneCustom> _rotationBones;
     [SerializeField] private List<RotationBone> _rotationBonesAR;
 
     [SerializeField] private float _rotationSpeed = 15;
@@ -79,26 +79,26 @@ public class PlayerAnimationIK : MonoBehaviour
         //_sourceOffset = Quaternion.Inverse(_source.rotation) * _target.rotation;
         //_sourceOffset = Quaternion.Inverse(transform.rotation) * _target.rotation;
 
-        CalculateRotationBonesOffsets();
-        TESTCalcRotationOffsets();
+        // CalculateRotationBonesOffsets();
+        // TESTCalcRotationOffsets();
     }
 
-    private void TESTCalcRotationOffsets()
-    {
-        // OffsetRot1 = Quaternion.Inverse(transform.rotation) * _animator.GetBoneTransform(Bone1).rotation;
-        // OffsetRot2 = Quaternion.Inverse(transform.rotation) * _animator.GetBoneTransform(Bone2).rotation;
-        // OffsetRot3 = Quaternion.Inverse(transform.rotation) * _animator.GetBoneTransform(Bone3).rotation;
-    }
+    // private void TESTCalcRotationOffsets()
+    // {
+    //     // OffsetRot1 = Quaternion.Inverse(transform.rotation) * _animator.GetBoneTransform(Bone1).rotation;
+    //     // OffsetRot2 = Quaternion.Inverse(transform.rotation) * _animator.GetBoneTransform(Bone2).rotation;
+    //     // OffsetRot3 = Quaternion.Inverse(transform.rotation) * _animator.GetBoneTransform(Bone3).rotation;
+    // }
 
-    private void CalculateRotationBonesOffsets()
-    {
-        for (int i = 0; i < _rotationBones.Count; i++)
-        {
-            // Calculate source offset..
-            // Might not be the best to use the transform.rotation, but as thats our reference rotation it should work fine.
-            _rotationBones[i].SourceOffset = Quaternion.Inverse(transform.rotation) * _rotationBones[i].Bone.rotation;
-        }
-    }
+    // private void CalculateRotationBonesOffsets()
+    // {
+    //     for (int i = 0; i < _rotationBones.Count; i++)
+    //     {
+    //         // Calculate source offset..
+    //         // Might not be the best to use the transform.rotation, but as thats our reference rotation it should work fine.
+    //         _rotationBones[i].SourceOffset = Quaternion.Inverse(transform.rotation) * _rotationBones[i].Bone.rotation;
+    //     }
+    // }
 
     private void Update()
     {
@@ -107,147 +107,26 @@ public class PlayerAnimationIK : MonoBehaviour
 
         for (int i = 0; i < _rotationBonesAR.Count; i++)
         {
-            // TODO with smoothing 
-            //Quaternion targetRotation = Quaternion.Lerp(transform.rotation,
-            //    Quaternion.Euler(GetLatestRotation()) * Quaternion.Euler(_rotationBonesAR[i].Offset), _rotationBonesAR[i].Weight);
-
-            //_rotationBonesAR[i].Constraint.rotation = Quaternion.Slerp(_rotationBonesAR[i].Constraint.rotation, targetRotation, _rotationSpeed * Time.deltaTime);
-
-            // TODO original
-            //_rotationBonesAR[i].Constraint.rotation = Quaternion.Lerp(transform.rotation,
-            //    Quaternion.Euler(GetLatestRotation()) * Quaternion.Euler(_rotationBonesAR[i].Offset), _rotationBonesAR[i].Weight);
-
-
             // TODO NEW without smoothing
 
             Quaternion rawTargetRot = Quaternion.Euler(localEuler) * Quaternion.Euler(_rotationBonesAR[i].Offset);
             Quaternion targetRot = Quaternion.Lerp(Quaternion.identity, rawTargetRot, _rotationBonesAR[i].Weight);
 
             _rotationBonesAR[i].Constraint.localRotation = targetRot;
-
-            // TODO Smooth (Doesn't look nice, do something else)
-            //_rotationBonesAR[i].Constraint.localRotation =
-            //    Quaternion.Slerp(_rotationBonesAR[i].Constraint.localRotation, targetRot, _rotationSpeed * Time.deltaTime);
         }
-
-        //_camPosition.position = _targetBone.position;
-
-        //Vector3 localEuler = GetLatestRotation();
-        //localEuler.y = 0;
-
-        //_camPosition.localRotation = Quaternion.Slerp(_camPosition.localRotation, Quaternion.Euler(localEuler), _rotationSpeed * Time.deltaTime);
     }
-
-    private void LateUpdate()
-    {
-        // SWAPPING Testing in progress
-        //_target.rotation = _source.rotation * _sourceOffset;
-        //_target.rotation = Quaternion.Euler(GetLatestRotation()) * _sourceOffset;
-
-        //Quaternion rotation = Quaternion.Slerp(_currentRot, Quaternion.Euler(GetLatestRotation()) * _sourceOffset, _rotationSpeed * Time.deltaTime);
-
-        //_currentRot = rotation;
-        //_target.rotation = rotation;
-
-        //UpdateRotationBones();
-        //Vector3 localEuler = GetLatestRotation();
-        //localEuler.y = 0;
-
-        //_camPosition.position = _targetBone.position;
-        // Vector3 targetRotation = GetLatestRotation();
-
-        //_camPosition.localRotation = Quaternion.Euler(localEuler);
-        // _rotationBones[0].CurrentRotation = Quaternion.Slerp(_rotationBones[0].CurrentRotation,
-        // Quaternion.Euler(targetRotation) * _rotationBones[0].SourceOffset, _rotationSpeed * Time.deltaTime);
-        // _rotationBones[0].Bone.rotation = Quaternion.Euler(targetRotation) * _rotationBones[0].SourceOffset;
-    }
-
-    // TODO cleanup all code
-    //private void UpdateRotationBones()
-    //{
-    //    Vector3 targetRotation = GetLatestRotation();
-
-    //    for (int i = 0; i < _rotationBones.Count; i++)
-    //    {
-    //        // Calculate this bones rotation
-    //        _rotationBones[i].CurrentRotation = Quaternion.Slerp(_rotationBones[i].CurrentRotation,
-    //            Quaternion.Euler(targetRotation) * _rotationBones[i].SourceOffset, _rotationSpeed * Time.deltaTime);
-
-    //        // Apply rotation to bone.
-    //        _rotationBones[i].Bone.rotation = _rotationBones[i].CurrentRotation;
-    //    }
-    //}
-
+    
     private void OnAnimatorIK(int layerIndex)
     {
-        Debug.Log("IK");
-
-        Debug.Log(layerIndex);
-        // Exit if this call isn't for the target layer
-        // if (_checkLayer && _animator.GetLayerName(layerIndex) != _iKLayerName) return;
         if (_checkLayer && layerIndex != _iKLayerID) return;
 
+        // Set Position and rotation of the main cam which also has the weapon etc.
+        // _camPosition.position = _animator.GetBoneTransform(HumanBodyBones.Head).position;
 
+        // Vector3 localEuler = GetLatestRotation();
+        // localEuler.y = 0;
 
-
-
-        // Vector3 forward = Quaternion.Euler(GetLatestRotation()) * Vector3.forward; // local forward in world space
-        // Vector3 targetPosition = transform.position + forward;
-
-        // // Step 2: Set LookAt weight
-        // _animator.SetLookAtWeight(
-        //     1f,     // overall weight
-        //     1f,     // body weight
-        //     0f,     // head weight
-        //     0f,     // eyes weight
-        //     0.5f    // clamp weight
-        // );
-
-        // // Step 3: Set LookAt position
-        // _animator.SetLookAtPosition(_targetBone.position);
-        // _animator.SetBoneLocalRotation(HumanBodyBones.Spine, Quaternion.Euler(LTRotation));
-        // _animator.SetBoneLocalRotation(HumanBodyBones.Chest, Quaternion.Euler(LTRotation));
-
-
-
-
-        // _animator.SetBoneLocalRotation(Bone1, Quaternion.Euler(LTRotation1));
-        // _animator.SetBoneLocalRotation(Bone2, Quaternion.Euler(LTRotation2));
-        // _animator.SetBoneLocalRotation(Bone3, Quaternion.Euler(LTRotation3));
-
-
-
-        // Quaternion trueRot = Quaternion.Euler(GetLatestRotation());
-
-
-        // Quaternion wRotation1 = trueRot * OffsetRot1;
-        // Quaternion localRotation1 = Quaternion.Inverse(_animator.GetBoneTransform(Bone1).parent.rotation) * wRotation1;
-        // _animator.SetBoneLocalRotation(Bone1, localRotation1);
-
-        // Quaternion wRotation2 = trueRot * OffsetRot2;
-        // Quaternion localRotation2 = Quaternion.Inverse(_animator.GetBoneTransform(Bone2).parent.rotation) * wRotation2;
-        // _animator.SetBoneLocalRotation(Bone2, localRotation2);
-
-        // Quaternion wRotation3 = trueRot * OffsetRot3;
-        // Quaternion localRotation3 = Quaternion.Inverse(_animator.GetBoneTransform(Bone3).parent.rotation) * wRotation3;
-        // _animator.SetBoneLocalRotation(Bone3, localRotation3);
-
-
-
-
-        // _animator.SetBoneLocalRotation(Bone2, Quaternion.Euler(LTRotation2));
-        // _animator.SetBoneLocalRotation(Bone3, Quaternion.Euler(LTRotation3));
-
-
-
-        _camPosition.position = _animator.GetBoneTransform(HumanBodyBones.Head).position;
-
-        Vector3 localEuler = GetLatestRotation();
-        localEuler.y = 0;
-        _camPosition.localRotation = Quaternion.Euler(localEuler);
-        // TODO part cm
-
-
+        // _camPosition.localRotation = Quaternion.Euler(localEuler);
 
         // Set IK Weights
         _animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
@@ -269,8 +148,6 @@ public class PlayerAnimationIK : MonoBehaviour
         // Set IK rotations
         _animator.SetIKRotation(AvatarIKGoal.LeftHand, _weaponLGrip.rotation * Quaternion.Euler(_lGripOffset));
         _animator.SetIKRotation(AvatarIKGoal.RightHand, _weaponRGrip.rotation * Quaternion.Euler(_rGripOffset));
-
-
     }
 
     private Vector3 GetLatestRotation()

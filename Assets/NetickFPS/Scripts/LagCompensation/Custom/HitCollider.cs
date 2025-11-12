@@ -15,7 +15,7 @@ namespace PG.LagCompensation
     /// </summary>
     public abstract class HitCollider : NetworkBehaviour
     {
-        
+
 
         // Use history in seconds instead.
         //public static int FrameHistory = 40;
@@ -28,7 +28,7 @@ namespace PG.LagCompensation
 
         private List<TransformFrameData> FrameData = new List<TransformFrameData>();
         //public List<double> FrameTimes = new List<double>();
-        
+
         public List<int> FrameTicks = new List<int>();
 
         [Header("Bound Settings")]
@@ -112,7 +112,7 @@ namespace PG.LagCompensation
         }
 
         public virtual bool CheckBoundingSphereDistanceCached(Vector3 o, Vector3 d, float range)
-	    {
+        {
             float closestDistance = GetTValueAlongLine(o, o + d, cachedPosRot.position + cachedPosRot.rotation * center);
 
             return closestDistance >= 0f && closestDistance <= range + GetBoundingSphereRadius;
@@ -245,7 +245,7 @@ namespace PG.LagCompensation
         /// <param name="b"></param>
         /// <returns></returns>
         protected static float GetSquaredMinimumDistanceBetwenPointAndLine(Vector3 p, Vector3 o, Vector3 d)
-	    {
+        {
             // https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
 
 
@@ -274,16 +274,16 @@ namespace PG.LagCompensation
             }
         }
 
-    
 
-	    #endregion
 
-	    #region Interpolation
+        #endregion
 
-	    /// <summary>
-	    /// [Doesn't do anything, use AddState] Add postion/rotation with timestamp to list. Call this after doing movement updates!
-	    /// </summary>
-	    public void ORIGINALAddFrame(double _localTime)
+        #region Interpolation
+
+        /// <summary>
+        /// [Doesn't do anything, use AddState] Add postion/rotation with timestamp to list. Call this after doing movement updates!
+        /// </summary>
+        public void ORIGINALAddFrame(double _localTime)
         {
             //if (FrameTimes.Count >= FrameHistory) // remove oldest stored frame
             //{
@@ -335,7 +335,7 @@ namespace PG.LagCompensation
                         cachedPosRot = TransformFrameData.Interpolate(FrameData[i], FrameData[i + 1], fraction);
                     }
                     else // there is no newer frame --> interpolate between this 'newest' frame and the current position!
-				    {
+                    {
                         double fraction = Math.Clamp((simulationTime - FrameTicks[i]) / (Time.timeAsDouble - FrameTicks[i]), 0d, 1d);
 
                         cachedPosRot = TransformFrameData.Interpolate(FrameData[i], new TransformFrameData(transform.position, transform.rotation), fraction); // getting current transform and rotation is more performance intensive than cached frame data
@@ -345,13 +345,51 @@ namespace PG.LagCompensation
                 }
             }
 
-        
+
+        }
+
+        // public void CachePositionRotation(int tick)
+        public void CachePositionRotation(TickInterpolation interpData)
+        {
+            // for (int i = 0; i < FrameData.Count; i++)
+            // {
+            //     // TODO older non sub tick implementation
+            //     if (FrameTicks[i] == tick)
+            //     {
+            //         // we found a match.
+            //         cachedPosRot = FrameData[i];
+
+            //         return;
+            //     }
+            // }
+            int fromIndex = -1;
+            int toIndex = -1;
+
+            for (int i = 0; i < FrameTicks.Count; i++)
+            {
+                if (FrameTicks[i] == interpData.From)
+                    fromIndex = i;
+                if (FrameTicks[i] == interpData.To)
+                    toIndex = i;
+            }
+
+            // If both frames are found, interpolate between them
+            if (fromIndex != -1 && toIndex != -1)
+            {
+                cachedPosRot = TransformFrameData.Interpolate(
+                    FrameData[fromIndex],
+                    FrameData[toIndex],
+                    interpData.InterpAlpha
+                );
+                return;
+            }
         }
 
         public void CachePositionRotation(int tick)
         {
             for (int i = 0; i < FrameData.Count; i++)
             {
+                // TODO older non sub tick implementation
                 if (FrameTicks[i] == tick)
                 {
                     // we found a match.
@@ -360,6 +398,27 @@ namespace PG.LagCompensation
                     return;
                 }
             }
+            // int fromIndex = -1;
+            // int toIndex = -1;
+
+            // for (int i = 0; i < FrameTicks.Count; i++)
+            // {
+            //     if (FrameTicks[i] == interpData.From)
+            //         fromIndex = i;
+            //     if (FrameTicks[i] == interpData.To)
+            //         toIndex = i;
+            // }
+
+            // // If both frames are found, interpolate between them
+            // if (fromIndex != -1 && toIndex != -1)
+            // {
+            //     cachedPosRot = TransformFrameData.Interpolate(
+            //         FrameData[fromIndex],
+            //         FrameData[toIndex],
+            //         interpData.InterpAlpha
+            //     );
+            //     return;
+            // }
         }
 
         public TransformFrameData GetCachedTRSData()

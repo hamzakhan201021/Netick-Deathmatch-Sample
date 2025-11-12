@@ -18,4 +18,12 @@ public struct PlayerInput : INetworkInput
     public Vector3 HitPosition;
     public Quaternion HitRotation;
     public int ClientTick;
+    public int InterpolationTickTo;
+    public int InterpolationTickFrom;
+    public float InterpolationAlpha;
+    public int InterpolationTickTo2;
+    public int InterpolationTickFrom2;
+
+    public Vector3 PositionHit;
+    public Quaternion Rotationhit;
 }

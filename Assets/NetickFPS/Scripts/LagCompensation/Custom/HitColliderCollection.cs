@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Netick;
 using UnityEngine;
 
 
@@ -40,12 +41,16 @@ namespace PG.LagCompensation
 
         private int simulationTick;
 
+        private TickInterpolation simulationInterpData;
+
         /// <summary>
         /// Set 'simulationTime' to value and reset 'simulationTimeActive' to false
         /// </summary>
         public double SetSimulationTime { set { simulationTime = value; simulationTimeActive = false; } }
 
         public int SetSimulationTick { set { simulationTick = value; simulationTimeActive = false; } }
+
+        public TickInterpolation SetSimulationInterpData { set { simulationInterpData = value; simulationTimeActive = false; } }
 
         // TODO remove this as it doesn't seem to be used.
         /// <summary>
@@ -145,11 +150,19 @@ namespace PG.LagCompensation
         /// <summary>
         /// Simulate this collections managed hit colliders
         /// </summary>
-        public void SimulateFully()
+        public void SimulateFully(bool useInterpData)
         {
             for (int i = 0; i < hitColliders.Count; i++)
             {
-                hitColliders[i].CachePositionRotation(simulationTick);
+                // TODO here is where we must change stuff
+                if (useInterpData)
+                {
+                    hitColliders[i].CachePositionRotation(simulationInterpData);
+                }
+                else
+                {
+                    hitColliders[i].CachePositionRotation(simulationTick);
+                }
             }
         }
 
@@ -243,7 +256,7 @@ namespace PG.LagCompensation
             // Changed to use new function
 
             //ORIGINALSimulateFully();
-            SimulateFully();
+            SimulateFully(true);
 
             for (int i = 0; i < hitColliders.Count; i++)
             {

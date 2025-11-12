@@ -979,6 +979,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayablesAnimator
   CRigBuilder: {fileID: 328025240}
+  GraphCreationMode: 1
+  GraphName: CustomAnimationGraph
+  InvokeSyncLayers: 0
   BlendClips:
   - Clip: {fileID: 7400000, guid: 6077cbf0678c44cc0bb190f5180d6008, type: 2}
     Position: {x: 0, y: 0}
@@ -986,6 +989,8 @@ MonoBehaviour:
     Position: {x: 0, y: 1}
   - Clip: {fileID: 7400000, guid: 51777267865fd48ba862226c058ef3f8, type: 2}
     Position: {x: -1, y: 1}
+  - Clip: {fileID: 7400000, guid: a62b190d1d8ab4322bb212fe1846c5a7, type: 2}
+    Position: {x: 1, y: 1}
   - Clip: {fileID: 7400000, guid: bd9d4db6a41dd436b96f6fa53a3754f4, type: 2}
     Position: {x: 0, y: -1}
   - Clip: {fileID: 7400000, guid: fbdadeb37a4924afc92096738473172e, type: 2}
@@ -997,10 +1002,14 @@ MonoBehaviour:
   - Clip: {fileID: 7400000, guid: 26cf0bbbcbebc4fd5a94c886132a0e67, type: 2}
     Position: {x: 1, y: 0}
   MoveX: 0
-  MoveY: 0
+  MoveY: 1
   Speed: 1
   _animStateFootIK: 0
   _animIKPass: 1
+  TakeControl: 0
+  ContinueUpdatingEvenWhenTakeControl: 0
+  Reverse: 0
+  networkTime: 0
 --- !u!95 &328025238
 Animator:
   serializedVersion: 7
