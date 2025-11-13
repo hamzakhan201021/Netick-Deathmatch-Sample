@@ -331,7 +331,11 @@ public class PlayerShootingController : NetworkBehaviour
         else
         {
 
-            bool useInterpData = Sandbox.GetComponent<LagCompensationManager>()._useInterpData;
+            LagCompensationManager lagComp = Sandbox.GetComponent<LagCompensationManager>();
+
+            if (!lagComp.CompareAndCalculatePrecision) return;
+
+            bool useInterpData = lagComp.UseInterpData;
 
             if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
             {

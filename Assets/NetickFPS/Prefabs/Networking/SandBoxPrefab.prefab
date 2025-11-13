@@ -48,6 +48,6 @@ MonoBehaviour:
   _comparisonCubes: 1
   _serverCubeLagComp: {fileID: 1591519784346127418, guid: c3235fc3e58834cb1bff74f599ca5ee1, type: 3}
   _clientCubeLagComp: {fileID: 1591519784346127418, guid: ce66c3bed3999424ca708d7c3a1c0fb3, type: 3}
-  _cubeCycleDuration: 5
+  _cubeCycleDuration: 3
   _tickOffset: 0
   _useInterpData: 0

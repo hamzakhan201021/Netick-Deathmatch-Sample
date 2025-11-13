@@ -6,11 +6,11 @@ using UnityEngine.Animations;
 using UnityEngine.Playables;
 using System.Collections.Generic;
 using System;
-using System.Linq;
-using Unity.VisualScripting;
 
 
 // [DefaultExecutionOrder(1000)]
+// TODO re work this thing later, to have proper blend trees ETC, not hard coded....
+// Also need to comment this, very complicated stuff D
 public class PlayerTickAnimController : NetworkBehaviour
 {
     //    [SerializeField] private Animator _animator;
@@ -1208,12 +1208,14 @@ public class PlayerTickAnimController : NetworkBehaviour
 
     [Networked, Smooth] public float MoveX { get; set; }
     [Networked, Smooth] public float MoveY { get; set; }
-    [Networked, Smooth] public float StateValue { get; set; }
     [Networked, Smooth] public Vector2 MovementSmooth { get; set; }
+    [Networked, Smooth] public float StateValue { get; set; }
     [Networked, Smooth] public float StateValueSmooth { get; set; }
+    [Networked, Smooth] public float GroundedValueSmooth { get; set; }
     [Networked, Smooth] public float AnimTime { get; set; }
 
     private PlayableGraph graph;
+    private AnimationMixerPlayable groundedMixer;
     private AnimationMixerPlayable locomotionMixer;
     private AnimationMixerPlayable walkMixer;
     private AnimationMixerPlayable runMixer;
@@ -1228,6 +1230,9 @@ public class PlayerTickAnimController : NetworkBehaviour
     private PolarGradientBandInterpolator walkInterpolator;
     private PolarGradientBandInterpolator runInterpolator;
     private PolarGradientBandInterpolator crouchInterpolator;
+
+    private LinearBandInterpolator locomotionInterpolator;
+    private LinearBandInterpolator groundedInterpolator;
 
     private float stateStart;
     private float prevTargetState;
@@ -1260,16 +1265,54 @@ public class PlayerTickAnimController : NetworkBehaviour
         (runMixer, runClips, runInterpolator) = CreateBlendTree(RunBlendClips);
         (crouchMixer, crouchClips, crouchInterpolator) = CreateBlendTree(CrouchBlendClips);
 
-        locomotionMixer = AnimationMixerPlayable.Create(graph, 4);
+        // Init sample points and create 1D interpolator
+        float[] lnSamplePoints = new float[] { 0f, 0.5f, 1f, 2f };
+        locomotionInterpolator = new LinearBandInterpolator(lnSamplePoints);
+
+        float[] gdSamplePoints = new float[] { 0f, 1f };
+        groundedInterpolator = new LinearBandInterpolator(gdSamplePoints);
+        // locomotionInterpolator = new LinearBandInterpolator(new float[][] {
+        //     new float[]{0f},
+        //     new float[]{0.5f},
+        //     new float[]{1f},
+        //     new float[]{2f }
+        // });
+
+
+        #region Without Grounded Mixer
+        // locomotionMixer = AnimationMixerPlayable.Create(graph, 4);
+        // graph.Connect(crouchMixer, 0, locomotionMixer, 0);
+        // graph.Connect(walkMixer, 0, locomotionMixer, 1);
+        // graph.Connect(runMixer, 0, locomotionMixer, 2);
+
+        // // Create and connect to the first
+        // airbornePlayable = CreatePlayableFromClip(AirBorneClip);
+        // graph.Connect(airbornePlayable, 0, locomotionMixer, 3);
+
+        // var layerMixer = AnimationLayerMixerPlayable.Create(graph, 2);
+        // graph.Connect(locomotionMixer, 0, layerMixer, 0);
+        #endregion
+
+        #region  With grounded Mixer
+
+        locomotionMixer = AnimationMixerPlayable.Create(graph, 3);
         graph.Connect(crouchMixer, 0, locomotionMixer, 0);
         graph.Connect(walkMixer, 0, locomotionMixer, 1);
         graph.Connect(runMixer, 0, locomotionMixer, 2);
 
+        // Create airborne playable
         airbornePlayable = CreatePlayableFromClip(AirBorneClip);
-        graph.Connect(airbornePlayable, 0, locomotionMixer, 3);
 
+        // Set up grounded mixer
+        groundedMixer = AnimationMixerPlayable.Create(graph, 2);
+        graph.Connect(locomotionMixer, 0, groundedMixer, 0);
+        graph.Connect(airbornePlayable, 0, groundedMixer, 1);
+
+        // set up layer mixer
         var layerMixer = AnimationLayerMixerPlayable.Create(graph, 2);
-        graph.Connect(locomotionMixer, 0, layerMixer, 0);
+        graph.Connect(groundedMixer, 0, layerMixer, 0);
+        #endregion
+
 
         upperBodyPlayable = CreatePlayableFromClip(UpperBodyClip);
         graph.Connect(upperBodyPlayable, 0, layerMixer, 1);
@@ -1334,69 +1377,145 @@ public class PlayerTickAnimController : NetworkBehaviour
         Vector2 currentMovement = new(MoveX, MoveY);
         MovementSmooth = Vector2.MoveTowards(MovementSmooth, currentMovement, LerpSpeed * Sandbox.FixedDeltaTime);
 
+        StateValueSmooth = Mathf.Lerp(StateValueSmooth, StateValue, LerpSpeed * Sandbox.FixedDeltaTime);
         // Ease-in/out for StateValueSmooth
-        float targetState = StateValue;
-        if (targetState != prevTargetState)
-        {
-            stateStart = StateValueSmooth;
-            curveStartTime = AnimTime;
-            curveActive = true;
-            prevTargetState = targetState;
-        }
+        // float targetState = StateValue;
+        // if (targetState != prevTargetState)
+        // {
+        //     stateStart = StateValueSmooth;
+        //     curveStartTime = AnimTime;
+        //     curveActive = true;
+        //     prevTargetState = targetState;
+        // }
 
-        if (curveActive)
-        {
-            float elapsed = AnimTime - curveStartTime;
-            float t = Mathf.Clamp01(elapsed / SmoothDuration);
-            StateValueSmooth = Mathf.Lerp(stateStart, targetState, SmoothCurve.Evaluate(t));
-            if (t >= 1f) curveActive = false;
-        }
+        // if (curveActive)
+        // {
+        //     float elapsed = AnimTime - curveStartTime;
+        //     float t = Mathf.Clamp01(elapsed / SmoothDuration);
+        //     StateValueSmooth = Mathf.Lerp(stateStart, targetState, SmoothCurve.Evaluate(t));
+        //     if (t >= 1f) curveActive = false;
+        // }
     }
 
     private void UpdateAnimation()
     {
         if (!graph.IsValid()) return;
 
-        // Subtree weights
-        float crouchWeight = Mathf.Clamp01(1f - (StateValueSmooth * 2f));
-        float walkWeight = Mathf.Clamp01(1f - Mathf.Abs(StateValueSmooth - 0.5f) * 2f);
-        float runWeight = Mathf.Clamp01((StateValueSmooth - 0.5f) * 2f);
-        float airborneWeight = 1f - (crouchWeight + walkWeight + runWeight);
+        // Compute locomotion weights (crouch, walk, run)
+        float[] stateWeights = locomotionInterpolator.Interpolate(StateValueSmooth);
+        float crouchWeight = stateWeights[0];
+        float walkWeight = stateWeights[1];
+        float runWeight = stateWeights[2];
 
         locomotionMixer.SetInputWeight(0, crouchWeight);
         locomotionMixer.SetInputWeight(1, walkWeight);
         locomotionMixer.SetInputWeight(2, runWeight);
-        locomotionMixer.SetInputWeight(3, airborneWeight);
 
-        // Compute weighted durations for each blend tree
+        // Compute grounded mixer weights
+        float groundedWeight = groundedInterpolator.Interpolate(GroundedValueSmooth)[0];
+        float airborneWeight = 1f - groundedWeight;
+
+        groundedMixer.SetInputWeight(0, groundedWeight);  // locomotion
+        groundedMixer.SetInputWeight(1, airborneWeight); // airborne
+
+        // Compute weighted durations
         double crouchDur = ComputeWeightedDuration(crouchClips, crouchInterpolator, MovementSmooth);
         double walkDur = ComputeWeightedDuration(walkClips, walkInterpolator, MovementSmooth);
         double runDur = ComputeWeightedDuration(runClips, runInterpolator, MovementSmooth);
         double airborneDur = AirBorneClip.length;
 
-        // Compute top-level weighted duration
-        double totalWeight = crouchWeight + walkWeight + runWeight + airborneWeight;
-        double topDuration =
-            (crouchDur * crouchWeight +
-             walkDur * walkWeight +
-             runDur * runWeight +
-             airborneDur * airborneWeight) / Math.Max(0.0001, totalWeight);
+        // Locomotion duration (weighted by stateWeights)
+        double locomotionDur = (crouchDur * crouchWeight +
+                                walkDur * walkWeight +
+                                runDur * runWeight) / Math.Max(0.0001, crouchWeight + walkWeight + runWeight);
 
-        // Advance manualTime
+        // Top-level duration (weighted by grounded mixer)
+        double topDuration = locomotionDur * groundedWeight + airborneDur * airborneWeight;
+
+        // Advance manual time
         double deltaTime = AnimTime - lastNetworkTime;
         lastNetworkTime = AnimTime;
         manualTime += deltaTime / topDuration;
         manualTime %= 1.0;
-        
 
-        // Apply time to all clips
+        // Apply time to locomotion blend tree
         ApplyTimeToBlendTree(crouchMixer, crouchClips, crouchInterpolator, crouchWeight);
         ApplyTimeToBlendTree(walkMixer, walkClips, walkInterpolator, walkWeight);
         ApplyTimeToBlendTree(runMixer, runClips, runInterpolator, runWeight);
+
+        // Apply time to airborne
         airbornePlayable.SetTime(manualTime * AirBorneClip.length);
 
         graph.Evaluate();
     }
+
+    // private void UpdateAnimation()
+    // {
+    //     if (!graph.IsValid()) return;
+
+    //     // Subtree weights
+    //     // float crouchWeight = Mathf.Clamp01(1f - (StateValueSmooth * 2f));
+    //     // float walkWeight = Mathf.Clamp01(1f - Mathf.Abs(StateValueSmooth - 0.5f) * 2f);
+    //     // float runWeight = Mathf.Clamp01((StateValueSmooth - 0.5f) * 2f);
+    //     // float airborneWeight = 1f - (crouchWeight + walkWeight + runWeight);
+
+    //     // locomotionMixer.SetInputWeight(0, crouchWeight);
+    //     // locomotionMixer.SetInputWeight(1, walkWeight);
+    //     // locomotionMixer.SetInputWeight(2, runWeight);
+    //     // locomotionMixer.SetInputWeight(3, airborneWeight);
+
+    //     float[] stateWeights = locomotionInterpolator.Interpolate(StateValueSmooth);
+
+    //     // float[] stateWeights = locomotionInterpolator.Interpolate(new float[] { StateValueSmooth }, true);
+
+    //     // This is the optimal way, maybe later when i add proper animation thingies with no constraints then
+    //     // we can refactor, , XD
+    //     // for (int i = 0; i < locomotionMixer.GetInputCount(); i++)
+    //     // {
+    //     //     locomotionMixer.SetInputWeight(i, stateWeights[i]);
+    //     // }
+    //     float crouchWeight = stateWeights[0];
+    //     float walkWeight = stateWeights[1];
+    //     float runWeight = stateWeights[2];
+    //     // float airborneWeight = stateWeights[3];
+
+    //     locomotionMixer.SetInputWeight(0, crouchWeight);
+    //     locomotionMixer.SetInputWeight(1, walkWeight);
+    //     locomotionMixer.SetInputWeight(2, runWeight);
+    //     // no longer possible, only 3 inputs because grounded mixer manages it now
+    //     // locomotionMixer.SetInputWeight(3, airborneWeight);
+    //     groundedMixer.SetInputWeight(0, );
+    //     groundedMixer.SetInputWeight(1, );
+
+    //     // Compute weighted durations for each blend tree
+    //     double crouchDur = ComputeWeightedDuration(crouchClips, crouchInterpolator, MovementSmooth);
+    //     double walkDur = ComputeWeightedDuration(walkClips, walkInterpolator, MovementSmooth);
+    //     double runDur = ComputeWeightedDuration(runClips, runInterpolator, MovementSmooth);
+    //     double airborneDur = AirBorneClip.length;
+
+    //     // Compute top-level weighted duration
+    //     double totalWeight = crouchWeight + walkWeight + runWeight + airborneWeight;
+    //     double topDuration =
+    //         (crouchDur * crouchWeight +
+    //          walkDur * walkWeight +
+    //          runDur * runWeight +
+    //          airborneDur * airborneWeight) / Math.Max(0.0001, totalWeight);
+
+    //     // Advance manualTime
+    //     double deltaTime = AnimTime - lastNetworkTime;
+    //     lastNetworkTime = AnimTime;
+    //     manualTime += deltaTime / topDuration;
+    //     manualTime %= 1.0;
+
+
+    //     // Apply time to all clips
+    //     ApplyTimeToBlendTree(crouchMixer, crouchClips, crouchInterpolator, crouchWeight);
+    //     ApplyTimeToBlendTree(walkMixer, walkClips, walkInterpolator, walkWeight);
+    //     ApplyTimeToBlendTree(runMixer, runClips, runInterpolator, runWeight);
+    //     airbornePlayable.SetTime(manualTime * AirBorneClip.length);
+
+    //     graph.Evaluate();
+    // }
 
     private double ComputeWeightedDuration(AnimationClipPlayable[] clips, PolarGradientBandInterpolator interpolator, Vector2 input)
     {
@@ -1581,4 +1700,249 @@ public class PlayerTickAnimController : NetworkBehaviour
     //     graph.Evaluate(0f);
     // }
     #endregion
+}
+
+// public class LinearBandInterpolator1D
+// {
+//     public float[] SamplePoints;
+
+//     public LinearBandInterpolator1D(float[] samplePoints)
+//     {
+//         SamplePoints = samplePoints;
+//     }
+
+//     // public float[] Interpolate(float value)
+//     // {
+//     //     int n = SamplePoints.Length;
+//     //     float[] weights = new float[n];
+//     //     if (n == 0)
+//     //         return weights;
+
+//     //     for (int i = 0; i < n; i++)
+//     //         weights[i] = Mathf.Clamp01(1f - Mathf.Abs(value - SamplePoints[i]));
+
+//     //     float total = 0f;
+//     //     for (int i = 0; i < n; i++)
+//     //         total += weights[i];
+
+//     //     if (total > 0.0001f)
+//     //     {
+//     //         for (int i = 0; i < n; i++)
+//     //             weights[i] /= total;
+//     //     }
+//     //     else
+//     //     {
+//     //         weights[0] = 1f;
+//     //     }
+
+//     //     return weights;
+//     // }
+//     public float[] Interpolate(float value)
+//     {
+//         int n = SamplePoints.Length;
+//         float[] weights = new float[n];
+//         if (n == 0) return weights;
+
+//         const float eps = 1e-6f;
+
+//         // If exactly on a sample point -> one-hot
+//         for (int i = 0; i < n; i++)
+//         {
+//             if (Mathf.Abs(value - SamplePoints[i]) <= eps)
+//             {
+//                 weights[i] = 1f;
+//                 return weights;
+//             }
+//         }
+
+//         // Compute triangular weights with width = half-distance to nearest neighbor
+//         for (int i = 0; i < n; i++)
+//         {
+//             float leftDist = (i > 0) ? (SamplePoints[i] - SamplePoints[i - 1]) : float.PositiveInfinity;
+//             float rightDist = (i < n - 1) ? (SamplePoints[i + 1] - SamplePoints[i]) : float.PositiveInfinity;
+
+//             // Use half distances to neighbors (midpoints)
+//             float halfLeft = (leftDist == float.PositiveInfinity) ? rightDist * 0.5f : leftDist * 0.5f;
+//             float halfRight = (rightDist == float.PositiveInfinity) ? leftDist * 0.5f : rightDist * 0.5f;
+
+//             // Choose smallest half span (so triangle goes to zero at closest midpoint)
+//             float halfSpan = Mathf.Min(
+//                 (halfLeft == float.PositiveInfinity ? float.PositiveInfinity : halfLeft),
+//                 (halfRight == float.PositiveInfinity ? float.PositiveInfinity : halfRight)
+//             );
+
+//             // If no neighbors (single point) or degenerate spacing, give it full weight
+//             if (!float.IsFinite(halfSpan) || halfSpan <= 1e-6f)
+//             {
+//                 // if it's the only sample point, we will handle normalization later
+//                 weights[i] = 1f;
+//                 continue;
+//             }
+
+//             float d = Mathf.Abs(value - SamplePoints[i]);
+//             float w = 1f - (d / halfSpan);      // triangular falloff that reaches 0 at midpoint
+//             weights[i] = Mathf.Clamp01(w);
+//         }
+
+//         // Normalize
+//         float total = 0f;
+//         for (int i = 0; i < n; i++) total += weights[i];
+//         if (total > 1e-6f)
+//         {
+//             for (int i = 0; i < n; i++) weights[i] /= total;
+//         }
+//         else
+//         {
+//             // fallback: put all weight on nearest sample
+//             int nearest = 0;
+//             float bestDist = Mathf.Abs(value - SamplePoints[0]);
+//             for (int i = 1; i < n; i++)
+//             {
+//                 float dist = Mathf.Abs(value - SamplePoints[i]);
+//                 if (dist < bestDist) { bestDist = dist; nearest = i; }
+//             }
+//             for (int i = 0; i < n; i++) weights[i] = (i == nearest) ? 1f : 0f;
+//         }
+
+//         return weights;
+//     }
+// }
+
+// public class LinearBandInterpolator
+// {
+
+//     public float[] samples;
+//     public LinearBandInterpolator(float[] samplePoints)
+//     {
+//         samples = samplePoints;
+//     }
+
+//     public float[] Interpolate(float[] output, bool normalize)
+//     {
+//         float[] weights = BasicChecks(output);
+//         if (weights != null) return weights;
+//         weights = new float[samples.Length];
+
+//         if (output.Length != 1)
+//             return null;
+
+//         float value = output[0];
+
+//         // Handle simple edge cases
+//         if (samples.Length == 1)
+//         {
+//             weights[0] = 1f;
+//             return weights;
+//         }
+
+//         // Find the two closest sample points surrounding the value
+//         for (int i = 0; i < samples.Length - 1; i++)
+//         {
+//             float left = samples[i];
+//             float right = samples[i + 1];
+
+//             if (value >= left && value <= right)
+//             {
+//                 float t = Mathf.InverseLerp(left, right, value);
+//                 weights[i] = 1f - t;
+//                 weights[i + 1] = t;
+
+//                 if (normalize)
+//                 {
+//                     float sum = weights[i] + weights[i + 1];
+//                     if (sum > 0)
+//                     {
+//                         weights[i] /= sum;
+//                         weights[i + 1] /= sum;
+//                     }
+//                 }
+
+//                 return weights;
+//             }
+//         }
+
+//         // If outside range, clamp to nearest sample
+//         if (value < samples[0])
+//         {
+//             weights[0] = 1f;
+//         }
+//         else if (value > samples[samples.Length - 1])
+//         {
+//             weights[samples.Length - 1] = 1f;
+//         }
+
+//         return weights;
+//     }
+
+//     // Returns the weights if simple cases are fulfilled.
+// 	// Returns null otherwise.
+// 	public float[] BasicChecks(float[] output) {
+// 		if (samples.Length==1) {
+// 			return new float[1] { 1 };
+// 		}
+// 		for (int i=0; i<samples.Length; i++) {
+// 			if (Equals(output, samples[i])) {
+// 				float[] weights = new float[samples.Length];
+// 				weights[i] = 1;
+// 				return weights;
+// 			}
+// 		}
+// 		return null;
+// 	}
+// }
+public class LinearBandInterpolator
+{
+    public float[] Samples;
+
+    public LinearBandInterpolator(float[] samplePoints)
+    {
+        Samples = samplePoints;
+    }
+
+    // Returns normalized weights for each sample point based on a single float input
+    public float[] Interpolate(float value)
+    {
+        int n = Samples.Length;
+        float[] weights = new float[n];
+
+        if (n == 0) return weights;
+        if (n == 1)
+        {
+            weights[0] = 1f;
+            return weights;
+        }
+
+        // Check if value matches a sample exactly
+        for (int i = 0; i < n; i++)
+        {
+            if (Mathf.Approximately(value, Samples[i]))
+            {
+                weights[i] = 1f;
+                return weights;
+            }
+        }
+
+        // Find the two closest sample points surrounding the value
+        for (int i = 0; i < n - 1; i++)
+        {
+            float left = Samples[i];
+            float right = Samples[i + 1];
+
+            if (value >= left && value <= right)
+            {
+                float t = Mathf.InverseLerp(left, right, value);
+                weights[i] = 1f - t;
+                weights[i + 1] = t;
+                return weights;
+            }
+        }
+
+        // Clamp to nearest sample if out of range
+        if (value < Samples[0])
+            weights[0] = 1f;
+        else if (value > Samples[n - 1])
+            weights[n - 1] = 1f;
+
+        return weights;
+    }
 }

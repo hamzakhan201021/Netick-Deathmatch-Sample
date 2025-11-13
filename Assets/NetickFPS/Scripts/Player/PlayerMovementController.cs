@@ -171,7 +171,7 @@ public class PlayerMovementController : NetworkedCharacterController
 
         //networkInput.YawPitch += mouseInputs;
 
-        networkInput.CrouchInput |= Input.GetKeyDown(KeyCode.C);
+        networkInput.CrouchInput |= Input.GetKeyDown(KeyCode.LeftControl);
         networkInput.Sprinting = Input.GetKey(KeyCode.LeftShift);
         networkInput.JumpInput |= Input.GetKeyDown(KeyCode.Space);
 
@@ -316,7 +316,7 @@ public class PlayerMovementController : NetworkedCharacterController
         {
             bool groundedPreMove = IsGrounded();
             Vector3 _velocity = Velocity;
-            _velocity.y = 0;
+            _velocity.y = -1;
 
             _velocity = Vector3.MoveTowards(_velocity, targetVelocity, AccelerationRate * Sandbox.FixedDeltaTime);
 
@@ -337,7 +337,7 @@ public class PlayerMovementController : NetworkedCharacterController
             bool groundedPostMove = IsGrounded();
 
             if (groundedPostMove)
-                _velocity.y = 0;
+                _velocity.y = -1;
 
             if (!groundedPreMove && groundedPostMove)
             {

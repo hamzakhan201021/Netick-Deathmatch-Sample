@@ -1,6 +1,7 @@
 using UnityEngine;
 using Netick.Unity;
 using Netick;
+using UnityEngine.TextCore.Text;
 
 // TODO, Create Animations in anim controller, and sync from here.
 // TODO, cleanup
@@ -45,6 +46,9 @@ public class PlayerAnimatorController : NetworkBehaviour
     private float _standingValue = 1;
     private float _walkOrRunValue = 0;
 
+    [SerializeField] private CharacterController _controller;
+    [SerializeField] private float _groundCheckRadius = 0.3f;
+
     public override void NetworkStart()
     {
         SetupForAnimation();
@@ -58,6 +62,7 @@ public class PlayerAnimatorController : NetworkBehaviour
 
     private void SetupForAnimation()
     {
+        // _controller = GetComponentInParent<CharacterController>();
         _animator = GetComponent<Animator>();
 
         _moveXHash = Animator.StringToHash(_moveX);
@@ -96,13 +101,38 @@ public class PlayerAnimatorController : NetworkBehaviour
             // Default to walk
             float stateValue = 0.5f;
 
-            // set to 1 if sprinting
-            if (input.Sprinting) stateValue = 1;
             // set to 0 is crouching
             if (_playerMovementController.IsCrouching) stateValue = 0;
+            // set to 1 if sprinting
+            if (input.Sprinting) stateValue = 1;
 
             _playerTickAnimController.StateValue = stateValue;
+            _playerTickAnimController.GroundedValueSmooth = Mathf.Lerp(_playerTickAnimController.GroundedValueSmooth, IsGrounded() ? 0 : 1, Sandbox.FixedDeltaTime * _playerTickAnimController.LerpSpeed);
         }
+    }
+
+    private bool IsGrounded()
+    {
+        Collider[] hits = Physics.OverlapSphere(_controller.transform.position, _groundCheckRadius);
+        if (hits.Length > 0)
+        {
+            // Some hit is there
+            // bool foundOtherThanController = false;
+
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (hits[i] != _controller)
+                {
+                    // foundOtherThanController = true;
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+
+        // return Physics.CheckSphere(_controller.transform.position, _controller.radius);
     }
 
     public override void NetworkRender()
@@ -140,5 +170,12 @@ public class PlayerAnimatorController : NetworkBehaviour
         value.y = Mathf.Clamp(value.y, min, max);
 
         return value;
+    }
+
+    void OnDrawGizmos()
+    {
+        if (_controller == null) return;
+
+        Gizmos.DrawWireSphere(_controller.transform.position, _groundCheckRadius);
     }
 }

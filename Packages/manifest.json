@@ -17,6 +17,8 @@
     "com.unity.multiplayer.widgets": "1.0.1",
     "com.unity.netcode.gameobjects": "2.4.0",
     "com.unity.playablegraph-visualizer": "0.2.1-preview.3",
+    "com.unity.polybrush": "1.2.1",
+    "com.unity.probuilder": "6.0.7",
     "com.unity.render-pipelines.core": "17.2.0",
     "com.unity.render-pipelines.universal": "17.2.0",
     "com.unity.render-pipelines.universal-config": "17.0.3",

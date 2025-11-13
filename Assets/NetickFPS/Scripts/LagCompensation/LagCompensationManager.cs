@@ -76,7 +76,8 @@ public class LagCompensationManager : NetworkBehaviour
     [Tooltip("Time before destroying the spawned object")]
     [SerializeField] private float _cubeCycleDuration = 15;
     [SerializeField] private int _tickOffset = 0;
-    [SerializeField] public bool _useInterpData = false;
+    [SerializeField] public bool UseInterpData = false;
+    public bool CompareAndCalculatePrecision = false;
 
     //private static readonly Dictionary<Collider, ColliderHistory> _collider3DStates = new();
 
@@ -484,7 +485,7 @@ public class LagCompensationManager : NetworkBehaviour
         // ColliderCastSystem.Simulate(interpData);
         Debug.Log($"All ticks, interp from {interpData.From} to {interpData.To} Alpha {interpData.InterpAlpha} and tick {tick}");
 
-        if (_useInterpData)
+        if (UseInterpData)
         {
             ColliderCastSystem.Simulate(interpData.Add(_tickOffset));
         }
@@ -494,7 +495,7 @@ public class LagCompensationManager : NetworkBehaviour
         }
 
         //if (ColliderCastSystem.ColliderCastFromCachedData(ray.origin, ray.direction, range, out ColliderCastHit ccHit, out HitColliderCollection hitCollection, out int index))
-        if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, range, _useInterpData, out ColliderCastHit ccHit, out HitColliderCollection hitCollection, out int index, exclude, true))
+        if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, range, UseInterpData, out ColliderCastHit ccHit, out HitColliderCollection hitCollection, out int index, exclude, true))
         {
             hitInfo.CCHit = ccHit;
             hitInfo.HitColliderCollection = hitCollection;
@@ -514,7 +515,7 @@ public class LagCompensationManager : NetworkBehaviour
             // }
 
             // TODO Replace rpc with proper check.
-            SendClientHitObjectDataRpc(hitCol.GetCachedTRSData().position, hitCol.GetCachedTRSData().rotation, true, _useInterpData ? interpData.To : tick);
+            if (CompareAndCalculatePrecision) SendClientHitObjectDataRpc(hitCol.GetCachedTRSData().position, hitCol.GetCachedTRSData().rotation, true, UseInterpData ? interpData.To : tick);
 
 
             // TODO etc
@@ -561,6 +562,7 @@ public class LagCompensationManager : NetworkBehaviour
     [Rpc(RpcPeers.Everyone, RpcPeers.Owner, true)]
     public void SendClientHitObjectDataRpc(Vector3 position, Quaternion rotation, bool isServer, int shotId)
     {
+        if (!CompareAndCalculatePrecision) return;
 #if UNITY_EDITOR
         Debug.Log("Send hit object data from: is server " + isServer + " Shot tick" + shotId);
 #endif
