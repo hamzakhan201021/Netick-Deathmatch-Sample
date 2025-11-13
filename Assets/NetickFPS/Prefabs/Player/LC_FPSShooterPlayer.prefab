@@ -2327,7 +2327,7 @@ MonoBehaviour:
   _jumpEffectIntensity: 0.1
   _landEffectIntensity: -0.1
   WalkingSpeed: 1.8
-  SprintMultiplier: 2
+  SprintMultiplier: 2.2
   AccelerationRate: 25
   JumpStrength: 5
   GravityAcceleration: -9.81
@@ -6017,6 +6017,8 @@ MonoBehaviour:
   _rigBuilder: {fileID: 60133863258781120}
   _targetAnimator: {fileID: 1844307678191643506}
   InvokeSyncLayers: 1
+  _enableAnimFootIK: 1
+  _enableIKPass: 1
   WalkBlendClips:
   - Clip: {fileID: 7400000, guid: 6077cbf0678c44cc0bb190f5180d6008, type: 2}
     Position: {x: 0, y: 0}
@@ -6074,15 +6076,41 @@ MonoBehaviour:
     Position: {x: -1, y: 0}
   - Clip: {fileID: 7400000, guid: c2bdb0235934940e7a60e7ff267e9e7e, type: 2}
     Position: {x: 1, y: 0}
+  AirBorneClip: {fileID: 7400000, guid: 167913c9793dd48b9842c1c665120111, type: 2}
   UpperBodyClip: {fileID: 7400000, guid: 0eebbd4f48b294c8cb7f160b42da93c2, type: 2}
   UpperBodyMask: {fileID: 31900000, guid: ff0501eb1bfaf402d886e51ce2035f78, type: 2}
-  LerpSpeed: 10
+  LerpSpeed: 15
+  SmoothCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   <MoveX>k__BackingField: 0
   <MoveY>k__BackingField: 0
   <StateValue>k__BackingField: 1
   <MovementSmooth>k__BackingField: {x: 0, y: 0}
   <StateValueSmooth>k__BackingField: 0
   <AnimTime>k__BackingField: 0
+  SmoothDuration: 0.3
 --- !u!114 &60133863258781120
 MonoBehaviour:
   m_ObjectHideFlags: 0

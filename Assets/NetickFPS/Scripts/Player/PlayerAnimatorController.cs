@@ -3,6 +3,7 @@ using Netick.Unity;
 using Netick;
 
 // TODO, Create Animations in anim controller, and sync from here.
+// TODO, cleanup
 public class PlayerAnimatorController : NetworkBehaviour
 {
 
@@ -87,7 +88,7 @@ public class PlayerAnimatorController : NetworkBehaviour
             // This doesn't work well because the animation doesn't expect it to be normalized, only clamped...
             // Vector2 movementVal = Vector2.ClampMagnitude(input.Movement, 1);
             Vector2 movementVal = ClampVector2(input.Movement, -1, 1);
-            
+
             _playerTickAnimController.MoveX = movementVal.x;
             _playerTickAnimController.MoveY = movementVal.y;
 

@@ -186,8 +186,93 @@ public class PlayerMovementController : NetworkedCharacterController
 
     public override void NetworkFixedUpdate()
     {
+        #region Movement has been moved to Handle Movement
+        // Vector3 targetVelocity = Vector3.zero;
+        // bool didJump = false;
+
+        // if (FetchInput(out PlayerInput input))
+        // {
+        //     if (_autoAimOnTarget.isOn)
+        //     {
+        //         YawPitch = ClampAngles(input.YawPitch.x, input.YawPitch.y);
+        //     }
+        //     else
+        //     {
+        //         YawPitch = ClampAngles(YawPitch.x + input.YawPitch.x, YawPitch.y + input.YawPitch.y);
+        //     }
+
+        //     ApplyRotations(YawPitch, false);
+
+        //     // Get sprint multiplier
+        //     float sprintMultiplier = input.Sprinting ? SprintMultiplier : 1;
+
+        //     // by default use crouch input to toggle crouching
+        //     if (input.CrouchInput)
+        //     {
+        //         IsCrouching = !IsCrouching;
+        //     }
+
+        //     if (input.Sprinting)
+        //     {
+        //         // Ensure we ain't crouching if we want to run
+        //         IsCrouching = false;
+        //     }
+
+        //     if (input.JumpInput)
+        //     {
+        //         didJump = true;
+        //     }
+
+        //     // desired movement direction
+        //     Vector2 movementInput = Vector2.ClampMagnitude(input.Movement, 1);
+        //     targetVelocity = transform.TransformVector(Vector3.right * movementInput.x + Vector3.forward * movementInput.y) * WalkingSpeed * sprintMultiplier;
+        // }
+
+        // if (Sandbox.IsServer || IsPredicted)
+        // {
+        //     bool groundedPreMove = IsGrounded();
+        //     Vector3 _velocity = Velocity;
+        //     _velocity.y = 0;
+
+        //     _velocity = Vector3.MoveTowards(_velocity, targetVelocity, AccelerationRate * Sandbox.FixedDeltaTime);
+
+        //     _velocity.y = Velocity.y;
+        //     if (groundedPreMove && didJump)
+        //     {
+        //         _velocity.y = JumpStrength;
+
+        //         // here we jump so add effect to weapon.
+        //         _weaponEffects.AddBump(_jumpEffectIntensity);
+        //     }
+
+        //     _velocity.y += GravityAcceleration * Sandbox.FixedDeltaTime;
+
+        //     // move
+        //     _CC.Move((_velocity) * Sandbox.FixedDeltaTime);
+
+        //     bool groundedPostMove = IsGrounded();
+
+        //     if (groundedPostMove)
+        //         _velocity.y = 0;
+
+        //     if (!groundedPreMove && groundedPostMove)
+        //     {
+        //         // this means we just landed
+        //         // play effect
+        //         _weaponEffects.AddBump(_landEffectIntensity);
+        //     }
+
+        //     Velocity = _velocity;
+        // }
+        #endregion
+        HandleMovement();
+    }
+
+    private void HandleMovement()
+    {
         Vector3 targetVelocity = Vector3.zero;
         bool didJump = false;
+        bool didCrouch = false;
 
         if (FetchInput(out PlayerInput input))
         {
@@ -202,11 +287,19 @@ public class PlayerMovementController : NetworkedCharacterController
 
             ApplyRotations(YawPitch, false);
 
+            // Get sprint multiplier
             float sprintMultiplier = input.Sprinting ? SprintMultiplier : 1;
 
+            // by default use crouch input to toggle crouching
             if (input.CrouchInput)
             {
-                IsCrouching = !IsCrouching;
+                didCrouch = true;
+            }
+
+            if (input.Sprinting)
+            {
+                // Ensure we ain't crouching if we want to run
+                IsCrouching = false;
             }
 
             if (input.JumpInput)
@@ -254,59 +347,11 @@ public class PlayerMovementController : NetworkedCharacterController
             }
 
             Velocity = _velocity;
-        }
 
-        // ManageMovement();
-    }
-
-    private void ManageMovement()
-    {
-        Vector3 targetVelocity = Vector3.zero;
-        bool didJump = false;
-
-        if (FetchInput(out PlayerInput input))
-        {
-            // Apply yaw rotation (without touching pitch)
-            if (_autoAimOnTarget != null && _autoAimOnTarget.isOn)
+            if (didCrouch)
             {
-                YawPitch = ClampAngles(input.YawPitch.x, input.YawPitch.y);
+                IsCrouching = !IsCrouching;
             }
-            else
-            {
-                YawPitch = ClampAngles(YawPitch.x + input.YawPitch.x, YawPitch.y + input.YawPitch.y);
-            }
-
-            float sprintMultiplier = input.Sprinting ? SprintMultiplier : 1f;
-            if (input.JumpInput)
-                didJump = true;
-
-            // Local move direction in world space
-            Vector2 moveInput = Vector2.ClampMagnitude(input.Movement, 1f);
-            Vector3 move = new Vector3(moveInput.x, 0, moveInput.y);
-            targetVelocity = transform.TransformDirection(move) * WalkingSpeed * sprintMultiplier;
-        }
-
-        if (Sandbox.IsServer || IsPredicted)
-        {
-            bool groundedBefore = IsGrounded();
-
-            Vector3 vel = Velocity;
-            vel.y = 0;
-            vel = Vector3.MoveTowards(vel, targetVelocity, AccelerationRate * Sandbox.FixedDeltaTime);
-            vel.y = Velocity.y;
-
-            if (groundedBefore && didJump)
-                vel.y = JumpStrength;
-
-            vel.y += GravityAcceleration * Sandbox.FixedDeltaTime;
-
-            _CC.Move(vel * Sandbox.FixedDeltaTime);
-
-            bool groundedAfter = IsGrounded();
-            if (groundedAfter)
-                vel.y = 0;
-
-            Velocity = vel;
         }
     }
 
