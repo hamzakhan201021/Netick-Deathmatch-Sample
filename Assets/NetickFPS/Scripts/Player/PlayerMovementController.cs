@@ -171,7 +171,7 @@ public class PlayerMovementController : NetworkedCharacterController
 
         //networkInput.YawPitch += mouseInputs;
 
-        networkInput.CrouchInput |= Input.GetKeyDown(KeyCode.LeftControl);
+        networkInput.CrouchInput |= Input.GetKeyDown(KeyCode.C);
         networkInput.Sprinting = Input.GetKey(KeyCode.LeftShift);
         networkInput.JumpInput |= Input.GetKeyDown(KeyCode.Space);
 

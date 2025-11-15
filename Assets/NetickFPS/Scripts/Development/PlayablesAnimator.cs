@@ -58,8 +58,8 @@ public class PlayablesAnimator : MonoBehaviour
             case CreateGraphMode.CreateNew:
                 graph = PlayableGraph.Create(GraphName);
                 graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
-
-                CRigBuilder.Build(graph);
+                
+                CRigBuilder?.Build(graph);
 
                 break;
             case CreateGraphMode.UseRigBuildersGraph:

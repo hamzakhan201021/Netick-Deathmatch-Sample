@@ -7,10 +7,6 @@ using UnityEngine.Playables;
 using System.Collections.Generic;
 using System;
 
-
-// [DefaultExecutionOrder(1000)]
-// TODO re work this thing later, to have proper blend trees ETC, not hard coded....
-// Also need to comment this, very complicated stuff D
 public class PlayerTickAnimController : NetworkBehaviour
 {
     //    [SerializeField] private Animator _animator;
@@ -1358,16 +1354,17 @@ public class PlayerTickAnimController : NetworkBehaviour
     {
         if (!Object.IsProxy)
         {
+            // Increment animation time
             AnimTime += Sandbox.FixedDeltaTime;
 
             UpdateAnimationData();
-            UpdateAnimation();
+            UpdateAnimation(false);
         }
     }
 
     public override void NetworkRender()
     {
-        UpdateAnimation();
+        UpdateAnimation(true);
     }
 
     private void UpdateAnimationData()
@@ -1397,7 +1394,7 @@ public class PlayerTickAnimController : NetworkBehaviour
         // }
     }
 
-    private void UpdateAnimation()
+    private void UpdateAnimation(bool render)
     {
         if (!graph.IsValid()) return;
 
@@ -1418,25 +1415,29 @@ public class PlayerTickAnimController : NetworkBehaviour
         groundedMixer.SetInputWeight(0, groundedWeight);  // locomotion
         groundedMixer.SetInputWeight(1, airborneWeight); // airborne
 
-        // Compute weighted durations
-        double crouchDur = ComputeWeightedDuration(crouchClips, crouchInterpolator, MovementSmooth);
-        double walkDur = ComputeWeightedDuration(walkClips, walkInterpolator, MovementSmooth);
-        double runDur = ComputeWeightedDuration(runClips, runInterpolator, MovementSmooth);
-        double airborneDur = AirBorneClip.length;
+        // Update manual time only if it's in the fixed update loop
+        if (!render)
+        {
+            // Compute weighted durations
+            double crouchDur = ComputeWeightedDuration(crouchClips, crouchInterpolator, MovementSmooth);
+            double walkDur = ComputeWeightedDuration(walkClips, walkInterpolator, MovementSmooth);
+            double runDur = ComputeWeightedDuration(runClips, runInterpolator, MovementSmooth);
+            double airborneDur = AirBorneClip.length;
 
-        // Locomotion duration (weighted by stateWeights)
-        double locomotionDur = (crouchDur * crouchWeight +
-                                walkDur * walkWeight +
-                                runDur * runWeight) / Math.Max(0.0001, crouchWeight + walkWeight + runWeight);
+            // Locomotion duration (weighted by stateWeights)
+            double locomotionDur = (crouchDur * crouchWeight +
+                                    walkDur * walkWeight +
+                                    runDur * runWeight) / Math.Max(0.0001, crouchWeight + walkWeight + runWeight);
 
-        // Top-level duration (weighted by grounded mixer)
-        double topDuration = locomotionDur * groundedWeight + airborneDur * airborneWeight;
+            // Top-level duration (weighted by grounded mixer)
+            double topDuration = locomotionDur * groundedWeight + airborneDur * airborneWeight;
 
-        // Advance manual time
-        double deltaTime = AnimTime - lastNetworkTime;
-        lastNetworkTime = AnimTime;
-        manualTime += deltaTime / topDuration;
-        manualTime %= 1.0;
+            // Advance manual time
+            double deltaTime = AnimTime - lastNetworkTime;
+            lastNetworkTime = AnimTime;
+            manualTime += deltaTime / topDuration;
+            manualTime %= 1.0;
+        }
 
         // Apply time to locomotion blend tree
         ApplyTimeToBlendTree(crouchMixer, crouchClips, crouchInterpolator, crouchWeight);

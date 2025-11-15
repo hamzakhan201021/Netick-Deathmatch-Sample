@@ -3270,7 +3270,7 @@ MonoBehaviour:
   StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: -0.08850098, y: 0, z: 0}
-  radius: 0.08850098
+  radius: 0.18
 --- !u!1 &3995871375657139779
 GameObject:
   m_ObjectHideFlags: 0

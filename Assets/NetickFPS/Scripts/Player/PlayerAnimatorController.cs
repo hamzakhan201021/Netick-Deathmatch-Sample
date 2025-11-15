@@ -1,7 +1,6 @@
 using UnityEngine;
 using Netick.Unity;
 using Netick;
-using UnityEngine.TextCore.Text;
 
 // TODO, Create Animations in anim controller, and sync from here.
 // TODO, cleanup
