@@ -1,22 +1,10 @@
 using UnityEngine;
 using Netick.Unity;
 using Netick;
-using PG.LagCompensation;
+using HalalStudio.NetickLagCompensation;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
-
-public struct LCHitInfo
-{
-    public ColliderCastHit CCHit;
-    public HitColliderCollection HitColliderCollection;
-    public int HitColliderIndex;
-
-    public static LCHitInfo Zero
-    {
-        get { return new LCHitInfo { CCHit = ColliderCastHit.Zero, HitColliderCollection = null, HitColliderIndex = -1 }; }
-    }
-}
 
 public class PlayerShootingController : NetworkBehaviour
 {
@@ -88,6 +76,7 @@ public class PlayerShootingController : NetworkBehaviour
         HandleReloading();
         HandleEffects();
 
+        // Debugging, Show cached positions of hit colliders
         if (Input.GetKeyDown(KeyCode.G))
         {
             ColliderCastSystem.DebugDrawColliders();
@@ -175,7 +164,7 @@ public class PlayerShootingController : NetworkBehaviour
 
         ////if (Sandbox.IsResimulating) return;
         //if (!FetchInput(out PlayerInput input)) return;
-        
+
         //if (!input.ShootInput) return;
         //if (GunTimer > 0) return;
         ////if (!_timerFireRate.IsExpiredOrNotRunning(Sandbox)) return;
@@ -279,18 +268,25 @@ public class PlayerShootingController : NetworkBehaviour
             //}
 
             // Debugging
-            Debug.Log("Data tick diff, input tick from = " + input.ClientTick + " server tick " + Sandbox.AuthoritativeTick);
-            Debug.Log("Sandbox Remote Interpolation Tick to is = " + input.InterpolationTickTo);
-            Debug.Log("Sandbox Remote Interpolation Tick from is = " + input.InterpolationTickFrom);
-            Debug.Log("Sandbox Remote Interpolation Tick to 2 is = " + input.InterpolationTickTo2);
-            Debug.Log("Sandbox Remote Interpolation Tick from 2 is = " + input.InterpolationTickFrom2);
+#if UNITY_EDITOR
+
+            if (LagCompensationSystem.GetOrCreateSettings().LCSettings.EnableLogging)
+            {
+                Debug.Log("Data tick diff, input tick from = " + input.ClientTick + " server tick " + Sandbox.AuthoritativeTick);
+                Debug.Log("Sandbox Remote Interpolation Tick to is = " + input.InterpolationTickTo);
+                Debug.Log("Sandbox Remote Interpolation Tick from is = " + input.InterpolationTickFrom);
+                Debug.Log("Sandbox Remote Interpolation Tick to 2 is = " + input.InterpolationTickTo2);
+                Debug.Log("Sandbox Remote Interpolation Tick from 2 is = " + input.InterpolationTickFrom2);
+            }
+#endif
 
             //ColliderRollback cR = GetComponentInChildren<ColliderRollback>();
             TickInterpolation interpData = new TickInterpolation(input.InterpolationTickTo, input.InterpolationAlpha);
 
             // TODO make rollback module take input source
             //if (_lagCompManager.RaycastCR(ray, input.ClientTick, out RaycastHit hitInfo, _rollbackColliders.ToArray(), _shootableLayerMask))
-            if (_lagCompManager.RaycastLC(ray, input.ClientTick, interpData, out LCHitInfo hitInfo, _maxDistance, _hitColliderCollection))
+
+            if (_lagCompManager.RaycastLC(ray, InputSource, input.ClientTick, interpData, out LCHitInfo hitInfo, _maxDistance, _hitColliderCollection))
             {
                 Debug.Log("Hit was found");
 
@@ -331,11 +327,12 @@ public class PlayerShootingController : NetworkBehaviour
         else
         {
 
-            LagCompensationManager lagComp = Sandbox.GetComponent<LagCompensationManager>();
+            // LagCompensationManager lagComp = Sandbox.GetComponent<LagCompensationManager>();
+            LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
 
-            if (!lagComp.CompareAndCalculatePrecision) return;
+            if (!settings.CompareAndCalculatePrecision) return;
 
-            bool useInterpData = lagComp.UseInterpData;
+            bool useInterpData = false;
 
             if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
             {
@@ -389,7 +386,7 @@ public class PlayerShootingController : NetworkBehaviour
             // Check for reload
             if (input.ReloadInput && CanReload())
             {
-                
+
                 //int missing = magSize - currentAmmo;
                 //int toLoad = Mathf.Min(missing, reserveAmmo);
                 //reserveAmmo -= toLoad;

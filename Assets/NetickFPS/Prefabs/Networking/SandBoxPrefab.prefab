@@ -50,4 +50,5 @@ MonoBehaviour:
   _clientCubeLagComp: {fileID: 1591519784346127418, guid: ce66c3bed3999424ca708d7c3a1c0fb3, type: 3}
   _cubeCycleDuration: 3
   _tickOffset: 0
-  _useInterpData: 0
+  UseInterpData: 0
+  CompareAndCalculatePrecision: 0

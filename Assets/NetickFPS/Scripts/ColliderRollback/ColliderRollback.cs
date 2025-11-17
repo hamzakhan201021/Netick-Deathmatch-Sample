@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Netick.Unity;
 using UnityEngine;
+using HalalStudio.NetickLagCompensation;
 
 public class ColliderRollback : NetworkBehaviour
 {
@@ -44,7 +45,7 @@ public class ColliderRollback : NetworkBehaviour
         {
             if (_registered)
             {
-                Sandbox.GetComponent<LagCompensationManager>().Unregister(this);
+                // Sandbox.GetComponent<LagCompensationManager>().Unregister(this);
             }
 
             //RollbackModule.Instance.OnReady -= OnRollbackModuleReady;
@@ -58,7 +59,7 @@ public class ColliderRollback : NetworkBehaviour
         int historyLength = Mathf.CeilToInt(_storeHistoryInSeconds * Sandbox.Config.TickRate);
 
         //LagCompensationManager.Instance.Register(this, historyLength);
-        Sandbox.GetComponent<LagCompensationManager>().Register(this, historyLength);
+        // Sandbox.GetComponent<LagCompensationManager>().Register(this, historyLength);
 
         _registered = true;
     }
