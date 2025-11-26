@@ -31,16 +31,16 @@ public class PlayerAnimationIK : MonoBehaviour
 
     // TODO, we need to improve and cleanup this whole codebase XD
     [Header("Body Rotation")]
-    [SerializeField] private string _iKLayerName = "UpperBody";
-    [SerializeField] private int _iKLayerID = 1;
-    [Tooltip("Whether or not to check the layer of the IK callback")]
-    [SerializeField] private bool _checkLayer = false;
+    // [SerializeField] private string _iKLayerName = "UpperBody";
+    // [SerializeField] private int _iKLayerID = 1;
+    // [Tooltip("Whether or not to check the layer of the IK callback")]
+    // [SerializeField] private bool _checkLayer = false;
     [SerializeField] private PlayerMovementController _playerMovementController;
 
     // [SerializeField] private List<RotationBoneCustom> _rotationBones;
     [SerializeField] private List<RotationBone> _rotationBonesAR;
 
-    [SerializeField] private float _rotationSpeed = 15;
+    // [SerializeField] private float _rotationSpeed = 15;
 
     [Header("Weapon Bone")]
     [SerializeField] private Transform _camPosition;
@@ -118,7 +118,7 @@ public class PlayerAnimationIK : MonoBehaviour
     
     private void OnAnimatorIK(int layerIndex)
     {
-        if (_checkLayer && layerIndex != _iKLayerID) return;
+        // if (_checkLayer && layerIndex != _iKLayerID) return;
 
         // Set Position and rotation of the main cam which also has the weapon etc.
         // _camPosition.position = _animator.GetBoneTransform(HumanBodyBones.Head).position;

@@ -17,6 +17,12 @@ public class PlayerCharacter : NetworkBehaviour
         }
     }
 
+    // TODO remove this was used for testing
+    public override void NetworkUpdate()
+    {
+        // Debug.Log("Remote Interpolation Alpha is " + Sandbox.RemoteInterpolation.Alpha);
+    }
+
     private void SetShadowCastMode(Renderer renderer)
     {
         if (IsInputSource)

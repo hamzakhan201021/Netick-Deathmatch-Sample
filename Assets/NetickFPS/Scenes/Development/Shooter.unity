@@ -4428,7 +4428,7 @@ MonoBehaviour:
   AutoStart: 0
   AutoConnect: 0
   Port: 5076
-  ServerIPAddress: 192.168.1.107
+  ServerIPAddress: 127.0.0.1
   Cap: 1
   FPS: 450
   ShowDisconnectButton: 1
@@ -5239,37 +5239,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1103575894}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1108779800
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1108779801}
-  m_Layer: 0
-  m_Name: NeedToSomehowIncludeTheLocalPackage
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1108779801
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1108779800}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1113421296
 GameObject:
   m_ObjectHideFlags: 0
@@ -9732,7 +9701,7 @@ MonoBehaviour:
   PacketLossChance: 0
   SimulateLatency: 1
   SimulationLatencyMs: 150
-  SimulationLatencyRange: 2
+  SimulationLatencyRange: 15
 --- !u!1 &2032768644
 GameObject:
   m_ObjectHideFlags: 0
@@ -10551,9 +10520,9 @@ SceneRoots:
   - {fileID: 2058338250}
   - {fileID: 159780971}
   - {fileID: 864515482}
+  - {fileID: 2015207296}
   - {fileID: 1573098142}
   - {fileID: 1897454613}
-  - {fileID: 2015207296}
   - {fileID: 2108143155}
   - {fileID: 1041196996}
   - {fileID: 1782565656}
@@ -10564,4 +10533,3 @@ SceneRoots:
   - {fileID: 1722553047}
   - {fileID: 150187118}
   - {fileID: 189521893}
-  - {fileID: 1108779801}

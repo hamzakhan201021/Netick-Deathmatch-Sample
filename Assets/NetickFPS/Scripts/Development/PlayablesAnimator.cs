@@ -131,7 +131,7 @@ public class PlayablesAnimator : MonoBehaviour
 
 
     double lastNetworkTime = 0.0f;
-    double effectivePhaseSpeed = 0.0;
+    // double effectivePhaseSpeed = 0.0;
 
     void Update()
     {

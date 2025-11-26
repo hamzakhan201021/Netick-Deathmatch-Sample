@@ -24,6 +24,9 @@ public struct PlayerInput : INetworkInput
     public int InterpolationTickTo2;
     public int InterpolationTickFrom2;
 
-    public Vector3 PositionHit;
-    public Quaternion Rotationhit;
+
+    // Debugging Stuff
+    // public bool DidHit;
+    // public Vector3 PositionHit;
+    // public Quaternion Rotationhit;
 }

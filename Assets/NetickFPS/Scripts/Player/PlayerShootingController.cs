@@ -5,6 +5,12 @@ using HalalStudio.NetickLagCompensation;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Rendering.Universal;
+
+// NOTES
+
+// Remote interpolation To is always 2 ticks behind sandbox auth tick i wonder why
+// Either record differently or use an additional 2-3 ticks
 
 public class PlayerShootingController : NetworkBehaviour
 {
@@ -51,8 +57,10 @@ public class PlayerShootingController : NetworkBehaviour
     [SerializeField] private TMP_Text _ammoText;
     [SerializeField] private GameObject _reloadingOverlay;
 
-    [HideInInspector] public Vector3 HitPosition;
-    [HideInInspector] public Quaternion HitRotation;
+    private Vector3 HitPosition;
+    private Quaternion HitRotation;
+
+    private bool Didhit;
     //[HideInInspector] public int HitAuthTick;
 
     /// <summary>
@@ -102,6 +110,60 @@ public class PlayerShootingController : NetworkBehaviour
         Sandbox.SetInput(cInput);
 
         UpdateWeaponUI();
+
+        // TESTING IN PROGRESS
+        if (IsClient && !IsServer)
+        {
+            Debug.Log("Client ticks are:");
+            Debug.Log($"Sandbox Remote Interp: From {Sandbox.RemoteInterpolation.From} To {Sandbox.RemoteInterpolation.To} Alpha {Sandbox.RemoteInterpolation.Alpha}");
+            Debug.Log($"Sandbox Auth Tick {Sandbox.AuthoritativeTick}");
+        }
+        else
+        {
+            Debug.Log("Server ticks are:");
+            Debug.Log($"Sandbox local interp to {Sandbox.LocalInterpolation.To} alpha {Sandbox.LocalInterpolation.Alpha}");
+            Debug.Log($"Sandbox auth {Sandbox.AuthoritativeTick}");
+        }
+
+        // Debugging Stuff
+        // CheckIfHit(cInput);
+    }
+
+    private void CheckIfHit(PlayerInput input)
+    {
+        // We need to do raycast here if it hit or not based on input yk
+        if (input.ShootInput)
+        {
+            Debug.Log("Checking if we hit");
+            Ray ray = new Ray(_gunFirePoint.position, _gunFirePoint.forward);
+
+
+            LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
+
+            if (!settings.CompareAndCalculatePrecision) return;
+
+            bool useInterpData = settings.UseInterpData;
+
+            if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
+            {
+                Debug.Log("WE did hit");
+                // input.DidHit |= true;
+                Didhit = true;
+
+                HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
+
+                HitPosition = col.transform.position;
+                HitRotation = col.transform.rotation;
+
+                // TODO remove XD
+                // this is for the precision check data
+                // HitPosition = col.transform.position;
+                // HitRotation = col.transform.rotation;
+                //HitAuthTick = Sandbox.AuthoritativeTick;
+
+                // _lagCompManager.SendClientHitObjectDataRpc(col.transform.position, col.transform.rotation, false, useInterpData ? input.InterpolationTickTo : input.ClientTick);
+            }
+        }
     }
 
     private void HandleShooting()
@@ -275,12 +337,14 @@ public class PlayerShootingController : NetworkBehaviour
                 Debug.Log("Data tick diff, input tick from = " + input.ClientTick + " server tick " + Sandbox.AuthoritativeTick);
                 Debug.Log("Sandbox Remote Interpolation Tick to is = " + input.InterpolationTickTo);
                 Debug.Log("Sandbox Remote Interpolation Tick from is = " + input.InterpolationTickFrom);
-                Debug.Log("Sandbox Remote Interpolation Tick to 2 is = " + input.InterpolationTickTo2);
-                Debug.Log("Sandbox Remote Interpolation Tick from 2 is = " + input.InterpolationTickFrom2);
+                Debug.Log("Sandbox Remote interpoation alpha is = " + input.InterpolationAlpha);
+                // Debug.Log("Sandbox Remote Interpolation Tick to 2 is = " + input.InterpolationTickTo2);
+                // Debug.Log("Sandbox Remote Interpolation Tick from 2 is = " + input.InterpolationTickFrom2);
             }
 #endif
 
             //ColliderRollback cR = GetComponentInChildren<ColliderRollback>();
+            // TickInterpolation interpData = new TickInterpolation(input.InterpolationTickTo, input.InterpolationAlpha);
             TickInterpolation interpData = new TickInterpolation(input.InterpolationTickTo, input.InterpolationAlpha);
 
             // TODO make rollback module take input source
@@ -328,25 +392,54 @@ public class PlayerShootingController : NetworkBehaviour
         {
 
             // LagCompensationManager lagComp = Sandbox.GetComponent<LagCompensationManager>();
+
             LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
-
-            if (!settings.CompareAndCalculatePrecision) return;
-
-            bool useInterpData = false;
-
-            if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
+            if (settings.UseInterpData)
             {
-                HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
+                // IF this works later we can update it so that it also listens to settings..
+                if (Didhit)
+                {
+                    Debug.Log("NETWORK FIXED UPDATEWE did hit");
+                    // LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
 
-                // TODO remove XD
-                // this is for the precision check data
-                // HitPosition = col.transform.position;
-                // HitRotation = col.transform.rotation;
-                //HitAuthTick = Sandbox.AuthoritativeTick;
+                    bool useInterpData = settings.UseInterpData;
 
-                _lagCompManager.SendClientHitObjectDataRpc(col.transform.position, col.transform.rotation, false, useInterpData ? input.InterpolationTickTo : input.ClientTick);
-
+                    // _lagCompManager.SendClientHitObjectDataRpc(HitPosition, HitRotation, false, useInterpData ? input.InterpolationTickTo : input.ClientTick);
+                    _lagCompManager.SendClientHitObjectDataRpc(HitPosition, HitRotation, false, input.InterpolationTickTo);
+                }
             }
+            else
+            {
+                // THIS IS THE OLD WORKING CODE
+                // LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
+
+                if (!settings.CompareAndCalculatePrecision) return;
+
+                bool useInterpData = settings.UseInterpData;
+
+                if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
+                {
+                    HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
+
+                    // TODO remove XD
+                    // this is for the precision check data
+                    // HitPosition = col.transform.position;
+                    // HitRotation = col.transform.rotation;
+                    //HitAuthTick = Sandbox.AuthoritativeTick;
+
+                    _lagCompManager.SendClientHitObjectDataRpc(col.transform.position, col.transform.rotation, false, useInterpData ? input.InterpolationTickTo : input.ClientTick);
+
+                }
+            }
+
+
+
+
+
+
+
+
+
 
             //bool didHit = Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity, _shootableLayerMask);
 
