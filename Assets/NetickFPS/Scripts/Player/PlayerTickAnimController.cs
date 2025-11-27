@@ -1930,7 +1930,7 @@ public class PlayerTickAnimController : NetworkBehaviour
             // float deltaInterp = Sandbox.LocalInterpolation.Time - lastInterpTime;
             // lastInterpTime = Sandbox.LocalInterpolation.Time;
             timeOff += deltaBlended - Sandbox.FixedDeltaTime;
-            Debug.Log($"interpolation local time {Sandbox.LocalInterpolation.Time}");
+            // Debug.Log($"interpolation local time {Sandbox.LocalInterpolation.Time}");
 
 
 
@@ -1946,7 +1946,7 @@ public class PlayerTickAnimController : NetworkBehaviour
             // manualTime = Sandbox.LocalInterpolation.Time + timeOff;
         }
 
-        if (LogInterpDelay) Debug.Log($"Interpolation Delay is {Sandbox.InterpolationDelay}");
+        // if (LogInterpDelay) Debug.Log($"Interpolation Delay is {Sandbox.InterpolationDelay}");
 
         // Get time using interpolation + offset.
         animTime = time + timeOff;

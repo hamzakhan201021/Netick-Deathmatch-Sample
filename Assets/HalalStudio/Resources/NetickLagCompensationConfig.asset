@@ -21,5 +21,5 @@ MonoBehaviour:
     ServerCube: {fileID: 1591519784346127418, guid: c3235fc3e58834cb1bff74f599ca5ee1, type: 3}
     ClientCube: {fileID: 1591519784346127418, guid: ce66c3bed3999424ca708d7c3a1c0fb3, type: 3}
     CubeLifetime: 10
-    UseInterpData: 0
-    TickOffset: 0
+    UseInterpData: 1
+    TickOffset: -1

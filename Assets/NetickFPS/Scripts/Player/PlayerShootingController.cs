@@ -111,22 +111,22 @@ public class PlayerShootingController : NetworkBehaviour
 
         UpdateWeaponUI();
 
-        // TESTING IN PROGRESS
-        if (IsClient && !IsServer)
-        {
-            Debug.Log("Client ticks are:");
-            Debug.Log($"Sandbox Remote Interp: From {Sandbox.RemoteInterpolation.From} To {Sandbox.RemoteInterpolation.To} Alpha {Sandbox.RemoteInterpolation.Alpha}");
-            Debug.Log($"Sandbox Auth Tick {Sandbox.AuthoritativeTick}");
-        }
-        else
-        {
-            Debug.Log("Server ticks are:");
-            Debug.Log($"Sandbox local interp to {Sandbox.LocalInterpolation.To} alpha {Sandbox.LocalInterpolation.Alpha}");
-            Debug.Log($"Sandbox auth {Sandbox.AuthoritativeTick}");
-        }
+        // // TESTING IN PROGRESS
+        // if (IsClient && !IsServer)
+        // {
+        //     Debug.Log("Client ticks are:");
+        //     Debug.Log($"Sandbox Remote Interp: From {Sandbox.RemoteInterpolation.From} To {Sandbox.RemoteInterpolation.To} Alpha {Sandbox.RemoteInterpolation.Alpha}");
+        //     Debug.Log($"Sandbox Auth Tick {Sandbox.AuthoritativeTick}");
+        // }
+        // else
+        // {
+        //     Debug.Log("Server ticks are:");
+        //     Debug.Log($"Sandbox local interp to {Sandbox.LocalInterpolation.To} alpha {Sandbox.LocalInterpolation.Alpha}");
+        //     Debug.Log($"Sandbox auth {Sandbox.AuthoritativeTick}");
+        // }
 
         // Debugging Stuff
-        // CheckIfHit(cInput);
+        CheckIfHit(cInput);
     }
 
     private void CheckIfHit(PlayerInput input)
@@ -146,22 +146,25 @@ public class PlayerShootingController : NetworkBehaviour
 
             if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
             {
-                Debug.Log("WE did hit");
-                // input.DidHit |= true;
-                Didhit = true;
+                if (_hitColliderCollection != null)
+                {
+                    Debug.Log("WE did hit");
+                    // input.DidHit |= true;
+                    Didhit = true;
 
-                HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
+                    HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
 
-                HitPosition = col.transform.position;
-                HitRotation = col.transform.rotation;
+                    HitPosition = col.transform.position;
+                    HitRotation = col.transform.rotation;
 
-                // TODO remove XD
-                // this is for the precision check data
-                // HitPosition = col.transform.position;
-                // HitRotation = col.transform.rotation;
-                //HitAuthTick = Sandbox.AuthoritativeTick;
+                    // TODO remove XD
+                    // this is for the precision check data
+                    // HitPosition = col.transform.position;
+                    // HitRotation = col.transform.rotation;
+                    //HitAuthTick = Sandbox.AuthoritativeTick;
 
-                // _lagCompManager.SendClientHitObjectDataRpc(col.transform.position, col.transform.rotation, false, useInterpData ? input.InterpolationTickTo : input.ClientTick);
+                    // _lagCompManager.SendClientHitObjectDataRpc(col.transform.position, col.transform.rotation, false, useInterpData ? input.InterpolationTickTo : input.ClientTick);
+                }
             }
         }
     }
