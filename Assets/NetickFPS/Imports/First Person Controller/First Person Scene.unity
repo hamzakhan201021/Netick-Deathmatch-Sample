@@ -5466,7 +5466,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13d95c28de1bac54f8b26fc8dd960077, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerPrefab: {fileID: 2371795732441542517, guid: 28f0492474c344d8ebce338e5d9916a2, type: 3}
+  PlayerPrefab: {fileID: 7011933354638177272, guid: 4a8623ea07553dc4788e8d53a2ea8ff6, type: 3}
   SpawnPosition: {fileID: 10129275}
   HorizontalOffset: 1
   StaggerSpawns: 1

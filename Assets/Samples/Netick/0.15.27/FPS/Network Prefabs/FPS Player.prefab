@@ -122,10 +122,15 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -143,6 +148,7 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -195,18 +201,19 @@ MonoBehaviour:
   m_Script: {fileID: -1923973434, guid: da78c2c9df60edc4fb5f65b59fa57c41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _AoILayer: 0
   _BroadPhaseFilter: 0
-  _SpatialPrioritization: 0
   _NarrowPhaseFilter: 0
-  AddToNetworkLoop: 1
-  GlobalObjectIdHash: 0
-  SceneId: -1
-  _PrefabId: 5
+  _SpatialPrioritization: 0
+  _PredictionMode: 0
+  _AddToNetworkLoop: 1
+  _IsPersistent: 0
   PrefabRoot: {fileID: 0}
   Children: []
   PrefabIndex: -1
-  Persistent: 0
-  _predictionMode: 0
+  _PrefabId: 5
+  _SceneId: -1
+  _RuntimeSceneId: -1
 --- !u!114 &3197551385548652812
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -224,10 +231,9 @@ MonoBehaviour:
   PositionPrecision: 3
   Settings: 5
   TransformSpace: 1
+  UseForAOIPosition: 1
   EnablePredictionErrorCorrectionSmoothing: 0
-  InterpolationMultiplier: 20
   CorrectionMultiplier: 3
-  CorrectionMaxBlendAlpha: 0.7
   TeleportErrorThreshold: 50
   _interpolationSource: 0
 --- !u!143 &1417749684482701243
@@ -245,7 +251,6 @@ CharacterController:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -270,7 +275,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _renderTransform: {fileID: 4519677825914407182}
   _movementSpeed: 10
-  _sensitivityX: 1.6
+  _sensitivityX: 1
   _sensitivityY: -1
+  _lookSmoothTime: 0.05
   _cameraParent: {fileID: 3369032719007731524}
+  useAcceleration: 0
+  accelerationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0.1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 20
+      value: 3
+      inSlope: 0.1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   <YawPitch>k__BackingField: {x: 0, y: 0}

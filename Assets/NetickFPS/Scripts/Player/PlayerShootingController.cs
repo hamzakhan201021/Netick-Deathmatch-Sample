@@ -5,12 +5,6 @@ using HalalStudio.NetickLagCompensation;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.Rendering.Universal;
-
-// NOTES
-
-// Remote interpolation To is always 2 ticks behind sandbox auth tick i wonder why
-// Either record differently or use an additional 2-3 ticks
 
 public class PlayerShootingController : NetworkBehaviour
 {
@@ -57,6 +51,7 @@ public class PlayerShootingController : NetworkBehaviour
     [SerializeField] private TMP_Text _ammoText;
     [SerializeField] private GameObject _reloadingOverlay;
 
+    // For now uses these to send in fixed update to the rpc etc
     private Vector3 HitPosition;
     private Quaternion HitRotation;
 
@@ -134,7 +129,7 @@ public class PlayerShootingController : NetworkBehaviour
         // We need to do raycast here if it hit or not based on input yk
         if (input.ShootInput)
         {
-            Debug.Log("Checking if we hit");
+            // Debug.Log("Checking if we hit");
             Ray ray = new Ray(_gunFirePoint.position, _gunFirePoint.forward);
 
 
@@ -148,7 +143,7 @@ public class PlayerShootingController : NetworkBehaviour
             {
                 if (_hitColliderCollection != null)
                 {
-                    Debug.Log("WE did hit");
+                    // Debug.Log("WE did hit");
                     // input.DidHit |= true;
                     Didhit = true;
 
@@ -335,7 +330,9 @@ public class PlayerShootingController : NetworkBehaviour
             // Debugging
 #if UNITY_EDITOR
 
-            if (LagCompensationSystem.GetOrCreateSettings().LCSettings.EnableLogging)
+            // if (LagCompensationSystem.GetOrCreateSettings().LCSettings.EnableLogging)
+            // if (LagCompensationSystem.Settings.EnableLogging)
+            if (LagCompensationSystem.LagCompSettings.EnableLogging)
             {
                 Debug.Log("Data tick diff, input tick from = " + input.ClientTick + " server tick " + Sandbox.AuthoritativeTick);
                 Debug.Log("Sandbox Remote Interpolation Tick to is = " + input.InterpolationTickTo);
@@ -355,7 +352,7 @@ public class PlayerShootingController : NetworkBehaviour
 
             if (_lagCompManager.RaycastLC(ray, InputSource, input.ClientTick, interpData, out LCHitInfo hitInfo, _maxDistance, _hitColliderCollection))
             {
-                Debug.Log("Hit was found");
+                // Debug.Log("Hit was found");
 
                 //// LC
                 GameObject hitObject = hitInfo.HitColliderCollection.gameObject;
@@ -366,9 +363,11 @@ public class PlayerShootingController : NetworkBehaviour
                 {
                     if (pHC == _playerHealthController)
                     {
-                        Debug.Log("WHat BRO fired himself no way(THIS MUST NOT HAPPEN)");
+                        // This will never happen because we excluded this hit collection
+                        // Debug.Log("WHat BRO fired himself no way(THIS MUST NOT HAPPEN)");
                     }
 
+                    // Update health
                     pHC.ChangeHealth(-1);
                 }
                 ////
@@ -388,6 +387,10 @@ public class PlayerShootingController : NetworkBehaviour
                 //    }
                 //}
             }
+            else if (Physics.Raycast(ray, out RaycastHit hitInfoUnity, _maxDistance))
+            {
+                // Here we can do effects for environment objects
+            }
 
             //ColliderCastSystem.Simulate(input.ClientTick);
         }
@@ -396,16 +399,21 @@ public class PlayerShootingController : NetworkBehaviour
 
             // LagCompensationManager lagComp = Sandbox.GetComponent<LagCompensationManager>();
 
-            LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
-            if (settings.UseInterpData)
+            // LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
+
+            bool useInterpData = LagCompensationSystem.LagCompSettings.UseInterpData;
+
+            if (LagCompensationSystem.LagCompSettings.UseInterpData)
             {
                 // IF this works later we can update it so that it also listens to settings..
                 if (Didhit)
                 {
+                    Didhit = false;
+
                     Debug.Log("NETWORK FIXED UPDATEWE did hit");
                     // LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
 
-                    bool useInterpData = settings.UseInterpData;
+                    // bool useInterpData = LagCompensationSystem.LagCompSettings.UseInterpData;
 
                     // _lagCompManager.SendClientHitObjectDataRpc(HitPosition, HitRotation, false, useInterpData ? input.InterpolationTickTo : input.ClientTick);
                     _lagCompManager.SendClientHitObjectDataRpc(HitPosition, HitRotation, false, input.InterpolationTickTo);
@@ -416,11 +424,13 @@ public class PlayerShootingController : NetworkBehaviour
                 // THIS IS THE OLD WORKING CODE
                 // LagCompensationSettings.Settings settings = LagCompensationSystem.GetOrCreateSettings().LCSettings;
 
-                if (!settings.CompareAndCalculatePrecision) return;
+                if (!LagCompensationSystem.LagCompSettings.CompareAndCalculatePrecision) return;
 
-                bool useInterpData = settings.UseInterpData;
+                // bool useInterpData = LagCompensationSystem.LagCompSettings.UseInterpData;
 
-                if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, out int index, _hitColliderCollection, false))
+                if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, 
+                                useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, 
+                                out int index, _hitColliderCollection, false))
                 {
                     HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
 

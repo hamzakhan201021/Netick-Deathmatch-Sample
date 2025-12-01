@@ -15,11 +15,12 @@ MonoBehaviour:
   LCSettings:
     HitCollectionColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
     HitColliderColor: {r: 0, g: 0.7490196, b: 1, a: 1}
-    EnableLogging: 1
-    CompareAndCalculatePrecision: 1
-    SpawnComparison: 1
+    EnableLogging: 0
+    CompareAndCalculatePrecision: 0
+    SpawnComparison: 0
     ServerCube: {fileID: 1591519784346127418, guid: c3235fc3e58834cb1bff74f599ca5ee1, type: 3}
     ClientCube: {fileID: 1591519784346127418, guid: ce66c3bed3999424ca708d7c3a1c0fb3, type: 3}
-    CubeLifetime: 10
+    CubeLifetime: 20
     UseInterpData: 1
     TickOffset: -1
+    StoreHistoryInSeconds: 2

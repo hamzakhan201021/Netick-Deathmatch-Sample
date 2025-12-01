@@ -9,5 +9,5 @@ EditorBuildSettings:
     path: Assets/NetickFPS/Scenes/Development/Shooter.unity
     guid: 0a9abedba0b99453ab6f02a90f0cc8f0
   m_configObjects:
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    com.unity.input.settings: {fileID: 11400000, guid: 0052ea64de5b54bcd923465202d0ea5b, type: 2}
   m_UseUCBPForAssetBundles: 0

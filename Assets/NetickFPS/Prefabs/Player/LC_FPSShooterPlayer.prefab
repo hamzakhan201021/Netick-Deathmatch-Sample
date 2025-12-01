@@ -135,7 +135,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e72bb93d711499ba6e3e125b3fd6cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCapsule
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: 0.21286015, y: 0, z: 0}
   height: 0.4257203
@@ -361,7 +360,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e72bb93d711499ba6e3e125b3fd6cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCapsule
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: -0.21286117, y: 0, z: 0}
   height: 0.42572233
@@ -662,7 +660,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e72bb93d711499ba6e3e125b3fd6cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCapsule
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: 0.24094355, y: 0, z: 0}
   height: 0.4818871
@@ -2139,6 +2136,7 @@ GameObject:
   - component: {fileID: 4842350146027120120}
   - component: {fileID: 941418115555512874}
   - component: {fileID: 5879975883220710785}
+  - component: {fileID: 678280099507508065}
   m_Layer: 0
   m_Name: LC_FPSShooterPlayer
   m_TagString: Untagged
@@ -2204,7 +2202,7 @@ MonoBehaviour:
   RenderTransform: {fileID: 6357479633084128165}
   TeleportDistance: 50
   PositionPrecision: 3
-  Settings: 15
+  Settings: 5
   TransformSpace: 0
   UseForAOIPosition: 1
   EnablePredictionErrorCorrectionSmoothing: 0
@@ -2268,20 +2266,44 @@ MonoBehaviour:
   AccelerationRate: 25
   JumpStrength: 5
   GravityAcceleration: -9.81
-  _sensX: 2
-  _sensY: 2
-  _inputSmoothSpeed: 20
+  _sensX: 1
+  _sensY: -1
+  _lookSmoothTime: 0.05
+  _useAcceleration: 0
+  _accelerationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0.1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 20
+      value: 3
+      inSlope: 0.1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   _cameraParent: {fileID: 6912436624186460540}
   _renderTransform: {fileID: 6357479633084128165}
   _useAutoMover: 1
   _autoMoverUI: {fileID: 5785165886482497169}
   _autoMove: {fileID: 8177982465111969613}
   _directionAMove: {fileID: 7714935988208598888}
-  _autoAimOnTarget: {fileID: 861500743322126992}
   <Velocity>k__BackingField: {x: 0, y: 0, z: 0}
-  <YawPitch>k__BackingField: {x: 0, y: 0}
   <IsCrouching>k__BackingField:
     RawValue: 0
+  <YawPitch>k__BackingField: {x: 0, y: 0}
 --- !u!114 &4842350146027120120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2352,6 +2374,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   _playerHud: {fileID: 7064176884346537005}
+--- !u!114 &678280099507508065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2371795732441542517}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
+  m_Actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: 
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &2387947931730550348
 GameObject:
   m_ObjectHideFlags: 0
@@ -3265,7 +3317,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93d4fc849814843c59d183d29ac2125f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderSphere
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: -0.08850098, y: 0, z: 0}
   radius: 0.18
@@ -3314,7 +3365,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de707bee950e422ea759550cd87cc43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderBox
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: -0.00000028312206, y: 0.01236669, z: 1.0159522}
   size: {x: 0.3540039, y: 0.2934878, z: 0.119221896}
@@ -3399,7 +3449,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e72bb93d711499ba6e3e125b3fd6cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCapsule
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: 0.23112719, y: 0, z: 0}
   height: 0.46225438
@@ -4324,7 +4373,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39bcae01481804b33a3915632327dd78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCollection
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: 0, y: 0, z: 0}
   radius: 2
@@ -5004,7 +5052,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e72bb93d711499ba6e3e125b3fd6cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCapsule
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: -0.23112676, y: 0, z: 0}
   height: 0.4622535
@@ -5056,7 +5103,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0de707bee950e422ea759550cd87cc43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderBox
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: -0.20202304, y: 0.06818692, z: -0.00000023841858}
   size: {x: 0.4040456, y: 0.26303345, z: 0.3540039}
@@ -5219,7 +5265,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e72bb93d711499ba6e3e125b3fd6cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCapsule
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: -0.15169962, y: 0, z: 0}
   height: 0.30339924
@@ -5897,8 +5942,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   _footClip: {fileID: 8300000, guid: 6fcd449135ac54b0f93480a8cdfeee66, type: 3}
   _volume: 0.25
-  _minDelayBetweenFootStep: 0.2
+  _minDelayBetweenFootStep: 0.4
   _minVelocity: 0.5
+  _minWeightForEvent: 0.5
   _playerMovementController: {fileID: 4799752753739770390}
 --- !u!114 &927263028432660230
 MonoBehaviour:
@@ -5934,6 +5980,7 @@ MonoBehaviour:
   _weaponRGripHint: {fileID: 5376775172786239635}
   _lGripOffset: {x: 352.18756, y: 42.231483, z: 165.07132}
   _rGripOffset: {x: 353.4605, y: 8.5508375, z: 258.70197}
+  _speed: 10
 --- !u!114 &6500623182346059667
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5955,58 +6002,84 @@ MonoBehaviour:
   WalkBlendClips:
   - Clip: {fileID: 7400000, guid: 6077cbf0678c44cc0bb190f5180d6008, type: 2}
     Position: {x: 0, y: 0}
+    Synchronise: 0
   - Clip: {fileID: 7400000, guid: 23f76691c4cc14195a622fe385c1d76c, type: 2}
     Position: {x: 0, y: 1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 51777267865fd48ba862226c058ef3f8, type: 2}
     Position: {x: -1, y: 1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: bd9d4db6a41dd436b96f6fa53a3754f4, type: 2}
     Position: {x: 0, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: fbdadeb37a4924afc92096738473172e, type: 2}
     Position: {x: -1, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: ff19f9b59f2354a9f9cf1b0b3e016777, type: 2}
     Position: {x: 1, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 1fe1ec24f741d4bbb989de18534e1c90, type: 2}
     Position: {x: -1, y: 0}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 26cf0bbbcbebc4fd5a94c886132a0e67, type: 2}
     Position: {x: 1, y: 0}
+    Synchronise: 1
   RunBlendClips:
   - Clip: {fileID: 7400000, guid: 6077cbf0678c44cc0bb190f5180d6008, type: 2}
     Position: {x: 0, y: 0}
+    Synchronise: 0
   - Clip: {fileID: 7400000, guid: 2b6da418d63d9486ebf4d07a7e386942, type: 2}
     Position: {x: 0, y: 1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 7d9e9efe97c4a453c92178f4692f7b3b, type: 2}
     Position: {x: -1, y: 1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: fca5fc462b7934695a8bd8579abc0503, type: 2}
     Position: {x: 1, y: 1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 6a05da54935cf4ec0a8629dc13bdeec4, type: 2}
     Position: {x: 0, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 7998d62edd6eb43ab9185f590a798f35, type: 2}
     Position: {x: -1, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 0cdfec4f417a84599ab1ca092d97feb4, type: 2}
     Position: {x: 1, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 50e12eb0a5c704cf0942337eeaf15282, type: 2}
     Position: {x: -1, y: 0}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 06ca1a265fc1740c6a0ffecf333dc73f, type: 2}
     Position: {x: 1, y: 0}
+    Synchronise: 1
   CrouchBlendClips:
   - Clip: {fileID: 7400000, guid: 42e677c55a84e49d29cbe688b8f9b536, type: 2}
     Position: {x: 0, y: 0}
+    Synchronise: 0
   - Clip: {fileID: 7400000, guid: 7ade10123a7ef443d9b11764004278f9, type: 2}
     Position: {x: 0, y: 1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: a76a906567f394ed1ba8f3e2fcc1b37c, type: 2}
     Position: {x: -1, y: 1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 99d1d17f0410947b1a67dfda91f04e45, type: 2}
     Position: {x: 1, y: 1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: eb07a8591e4f94ce9a51857e9aecc44a, type: 2}
     Position: {x: 0, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: c9168b4c9377045d5938c620368f0b20, type: 2}
     Position: {x: -1, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 89758b6ee0eef4b19850046145a1f769, type: 2}
     Position: {x: 1, y: -1}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: 9d7cc59b353914c29bc75650cebfbeef, type: 2}
     Position: {x: -1, y: 0}
+    Synchronise: 1
   - Clip: {fileID: 7400000, guid: c2bdb0235934940e7a60e7ff267e9e7e, type: 2}
     Position: {x: 1, y: 0}
+    Synchronise: 1
   AirBorneClip: {fileID: 7400000, guid: 167913c9793dd48b9842c1c665120111, type: 2}
   UpperBodyClip: {fileID: 7400000, guid: 0eebbd4f48b294c8cb7f160b42da93c2, type: 2}
   UpperBodyMask: {fileID: 31900000, guid: ff0501eb1bfaf402d886e51ce2035f78, type: 2}
@@ -6042,6 +6115,8 @@ MonoBehaviour:
   <StateValue>k__BackingField: 1
   <StateValueSmooth>k__BackingField: 0
   <GroundedValueSmooth>k__BackingField: 0
+  <timeOff>k__BackingField: 0
+  EnableSyncSystem: 0
 --- !u!114 &60133863258781120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7138,7 +7213,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e72bb93d711499ba6e3e125b3fd6cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCapsule
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: -0.24094412, y: 0, z: 0}
   height: 0.48188823
@@ -7947,7 +8021,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e72bb93d711499ba6e3e125b3fd6cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PG.LagCompensation.HitColliderCapsule
-  StoreHistoryInSeconds: 3
   FrameTicks: 
   center: {x: 0.15170018, y: 0, z: 0}
   height: 0.30340037
@@ -8862,6 +8935,7 @@ MonoBehaviour:
   _swayMaxAngle: 5
   <CurrentRotation>k__BackingField: {x: 0, y: 0, z: 0}
   <TargetRotation>k__BackingField: {x: 0, y: 0, z: 0}
+  <SwayRotation>k__BackingField: {x: 0, y: 0, z: 0, w: 0}
 --- !u!1 &8541350514877492239
 GameObject:
   m_ObjectHideFlags: 0

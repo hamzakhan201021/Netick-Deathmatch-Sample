@@ -23,7 +23,7 @@
         "com.unity.nuget.mono-cecil": "1.11.4",
         "com.unity.addressables": "1.22.3"
       },
-      "hash": "31784a8aeca16155ab8f7aa09f0e10d4ae36a883"
+      "hash": "f36379178236806c2be6f34df8e2f96a9f0fde1e"
     },
     "com.karrar.unitytransportnetick": {
       "version": "https://github.com/NetickNetworking/NetickUnityTransport.git",

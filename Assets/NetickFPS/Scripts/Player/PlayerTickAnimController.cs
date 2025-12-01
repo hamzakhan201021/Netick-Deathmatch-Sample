@@ -6,7 +6,6 @@ using UnityEngine.Animations;
 using UnityEngine.Playables;
 using System.Collections.Generic;
 using System;
-using UnityEngine.Profiling;
 
 public class PlayerTickAnimController : NetworkBehaviour
 {
@@ -1713,9 +1712,14 @@ public class PlayerTickAnimController : NetworkBehaviour
     // private bool curveActive;
 
     // [Networked, Smooth] public float manualTime { get; set; }
-    private float animTime;
+    private float _animTime;
+    private float _time;
     [Networked, Smooth] public float timeOff { get; set; }
-    // [Networked] public float lastInterpTime { get; set; }
+
+    public bool EnableSyncSystem = true;
+
+    // This code is for custom time (we might do this later)
+    // [Networked, Smooth] public float TestTimeCustom { get; set; }
 
     public Action OnSetValues;
 
@@ -1730,6 +1734,9 @@ public class PlayerTickAnimController : NetworkBehaviour
         _rigBuilder.Build();
         graph = _rigBuilder.graph;
         graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+
+        // Testing reflection etc
+
     }
 
     private void CreatePlayableGraph()
@@ -1935,6 +1942,10 @@ public class PlayerTickAnimController : NetworkBehaviour
 
 
 
+            // This code is for custom time (we might do this later)
+            // TestTimeCustom += Sandbox.FixedDeltaTime / (float)topDuration;
+
+
             // REMOVAL TEST
 
             // manualTime = Sandbox.LocalInterpolation.Time + timeOff;
@@ -1949,22 +1960,41 @@ public class PlayerTickAnimController : NetworkBehaviour
         // if (LogInterpDelay) Debug.Log($"Interpolation Delay is {Sandbox.InterpolationDelay}");
 
         // Get time using interpolation + offset.
-        animTime = time + timeOff;
+        // This was commented
+        if (EnableSyncSystem)
+        {
+            _animTime = time + timeOff;
+            _time = time;
+        }
+        else
+        {
+            _animTime = time;
+            _time = time;
+        }
+
+
+        // This code is for custom time (we might do this later)
+        // _animTime = TestTimeCustom;
 
         // Apply time to locomotion blend tree
-        ApplyTimeToBlendTree(crouchMixer, crouchClips, crouchInterpolator);
-        ApplyTimeToBlendTree(walkMixer, walkClips, walkInterpolator);
-        ApplyTimeToBlendTree(runMixer, runClips, runInterpolator);
+        ApplyTimeToBlendTree(crouchMixer, CrouchBlendClips, crouchClips, crouchInterpolator);
+        ApplyTimeToBlendTree(walkMixer, WalkBlendClips, walkClips, walkInterpolator);
+        ApplyTimeToBlendTree(runMixer, RunBlendClips, runClips, runInterpolator);
 
         // Apply time to airborne
         if (airborneWeight > 0.0f)
         {
-            airbornePlayable.SetTime(animTime * AirBorneClip.length);
+            airbornePlayable.SetTime(_animTime * AirBorneClip.length);
         }
 
         // Update/Evaluate graphs
         if (InvokeSyncLayers) _rigBuilder.SyncLayers();
         graph.Evaluate();
+    }
+
+    private void UpdateTime()
+    {
+
     }
 
     private double ComputeWeightedDuration(AnimationClipPlayable[] clips, PolarGradientBandInterpolator interpolator, Vector2 input)
@@ -1991,7 +2021,7 @@ public class PlayerTickAnimController : NetworkBehaviour
         return weighted;
     }
 
-    private void ApplyTimeToBlendTree(AnimationMixerPlayable mixer, AnimationClipPlayable[] clips, PolarGradientBandInterpolator interpolator)
+    private void ApplyTimeToBlendTree(AnimationMixerPlayable mixer, List<BlendClip> blendClips, AnimationClipPlayable[] clips, PolarGradientBandInterpolator interpolator)
     {
         float[] weights = interpolator.Interpolate(new float[] { MovementSmooth.x, MovementSmooth.y }, true);
 
@@ -2009,9 +2039,11 @@ public class PlayerTickAnimController : NetworkBehaviour
             if (weights[i] > 0.0f)
             {
                 // Set time
-                double t = animTime * clips[i].GetAnimationClip().length;
+                double t = _animTime * clips[i].GetAnimationClip().length;
                 // clips[i].SetTime(t);
-                clips[i].SetTime(t);
+                double time = blendClips[i].Synchronise ? t : _time;
+
+                clips[i].SetTime(time);
             }
 
             // Profiler.EndSample();

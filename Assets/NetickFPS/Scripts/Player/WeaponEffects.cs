@@ -3,10 +3,12 @@ using Netick.Unity;
 using Netick;
 using System;
 
+// Need this to ensure animation updates after the weapon has been updated, otherwise it may jitter the hands ik
+[ExecuteBefore(typeof(PlayerTickAnimController))]
 public class WeaponEffects : NetworkBehaviour
 {
 
-    // Weapon Effects (Adopted from HK FPS, See link in readme in case you want to XD) the script gun animator and weaponbase
+    // // Weapon Effects (Adopted from HK FPS, See link in readme in case you want to XD) the script gun animator and weaponbase
 
 
 
@@ -26,8 +28,9 @@ public class WeaponEffects : NetworkBehaviour
     private Vector3 _startPos;
     private Vector3 _startRot;
 
-    [Networked, Smooth] public Vector3 CurrentRotation { get; set; }
-    [Networked, Smooth] public Vector3 TargetRotation { get; set; }
+    [Networked] public Vector3 CurrentRotation { get; set; }
+    [Networked] public Vector3 TargetRotation { get; set; }
+    [Networked, Smooth] public Quaternion SwayRotation { get; set; }
 
     public override void NetworkStart()
     {
@@ -42,6 +45,11 @@ public class WeaponEffects : NetworkBehaviour
             UpdateHeadBob();
             UpdateRecoilAndSway(input.MouseInput);
         }
+    }
+
+    public override void NetworkRender()
+    {
+        transform.localRotation = SwayRotation;
     }
 
     // TODO Add headbobbing
@@ -108,15 +116,15 @@ public class WeaponEffects : NetworkBehaviour
         lookY = -Mathf.Clamp(lookY, -_swayMaxAngle, _swayMaxAngle);
         // END ADDED
 
-        Quaternion swayRotation;
+        // Quaternion swayRotation;
         Quaternion finalRot;
 
         finalRot = Quaternion.AngleAxis(-lookY, Vector3.right) * Quaternion.AngleAxis(-lookX, Vector3.forward);
 
-        swayRotation = Quaternion.Slerp(transform.localRotation, finalRot *
+        SwayRotation = Quaternion.Slerp(transform.localRotation, finalRot *
                 Quaternion.Euler(CurrentRotation), Sandbox.FixedDeltaTime * _swaySmooth);
 
-        transform.localRotation = swayRotation;
+        transform.localRotation = SwayRotation;
     }
 
 

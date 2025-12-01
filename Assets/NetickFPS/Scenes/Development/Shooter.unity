@@ -4533,10 +4533,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Netick.Samples::Netick.Samples.GameStarter
   SandboxPrefab: {fileID: 3253168977331969329, guid: fcb82304fbaff492ca568a4bfd0ce96a, type: 3}
   Transport: {fileID: 11400000, guid: 6e4922ae9a1ad4f438adfdb90c9dc16f, type: 2}
-  Mode: 4
+  Mode: 3
   Clients: 1
   StartServerInMultiplePeersMode: 1
-  AutoStart: 0
+  AutoStart: 1
   AutoConnect: 0
   Port: 5076
   ServerIPAddress: 127.0.0.1
@@ -4851,7 +4851,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &984967944
 Transform:
   m_ObjectHideFlags: 0

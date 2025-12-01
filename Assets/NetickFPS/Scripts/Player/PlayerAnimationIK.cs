@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 // TODO get this properly working make networked and test
 public class PlayerAnimationIK : MonoBehaviour
@@ -56,6 +57,7 @@ public class PlayerAnimationIK : MonoBehaviour
     [SerializeField] private Vector3 _lGripOffset = Vector3.zero;
     [SerializeField] private Vector3 _rGripOffset = Vector3.zero;
 
+    [SerializeField] private float _speed = 10;
     // [Header("Testing")]
     // public HumanBodyBones Bone1;
     // public Vector3 LTRotation1;
@@ -70,6 +72,8 @@ public class PlayerAnimationIK : MonoBehaviour
     private Animator _animator;
 
     //private Quaternion _currentRot;
+
+    private float smoothed;
 
     private void Start()
     {
@@ -104,6 +108,8 @@ public class PlayerAnimationIK : MonoBehaviour
     {
         Vector3 localEuler = GetLatestRotation();
         localEuler.y = 0;
+        // smoothed = Mathf.Lerp(smoothed, localEuler.x, _speed * Time.deltaTime);
+        // localEuler.x = smoothed;
 
         for (int i = 0; i < _rotationBonesAR.Count; i++)
         {
@@ -152,7 +158,8 @@ public class PlayerAnimationIK : MonoBehaviour
 
     private Vector3 GetLatestRotation()
     {
-        return new Vector3(_playerMovementController.YawPitch.y, _playerMovementController.YawPitch.x, 0);
+        // return new Vector3(_playerMovementController.YawPitch.y, _playerMovementController.YawPitch.x, 0);
+        return new Vector3(_playerMovementController.GetPitch(), transform.eulerAngles.y, 0);
     }
 
     // TODO remove old broken code.
