@@ -389,7 +389,7 @@ public class PlayerShootingController : NetworkBehaviour
             }
             else if (Physics.Raycast(ray, out RaycastHit hitInfoUnity, _maxDistance))
             {
-                // Here we can do effects for environment objects
+                // Here we can do effects for environment objects on the server maybe spawn a synced effect etc
             }
 
             //ColliderCastSystem.Simulate(input.ClientTick);

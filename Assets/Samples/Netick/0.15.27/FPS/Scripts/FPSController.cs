@@ -581,11 +581,6 @@ namespace Netick.Samples.FPS
         YawPitch = ClampAngles(YawPitch.x + input.YawPitch.x, YawPitch.y + input.YawPitch.y);
         ApplyRotations(YawPitch, false);
       }
-      else
-      {
-        // YawPitch = ClampAngles(YawPitch, YawPitch.y + input.YawPitch.y);
-        ApplyRotations(YawPitch, false);
-      }
 
 
       var movement = transform.TransformVector(new Vector3(input.Movement.x, 0, input.Movement.y)) * _movementSpeed;

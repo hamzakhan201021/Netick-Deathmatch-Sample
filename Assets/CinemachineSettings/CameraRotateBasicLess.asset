@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7f59e54f2bfd184b9dd451a678d089b, type: 3}
+  m_Name: CameraRotateBasicLess
+  m_EditorClassIdentifier: 
+  PositionNoise: []
+  OrientationNoise:
+  - X:
+      Frequency: 1.3
+      Amplitude: 0.987
+      Constant: 0
+    Y:
+      Frequency: 1.3475
+      Amplitude: 1.34
+      Constant: 0
+    Z:
+      Frequency: 0.5575
+      Amplitude: 2
+      Constant: 0
+  - X:
+      Frequency: 2.2925
+      Amplitude: 0.73
+      Constant: 0
+    Y:
+      Frequency: 2.8375
+      Amplitude: 0.86
+      Constant: 0
+    Z:
+      Frequency: 2.0775
+      Amplitude: 0.51
+      Constant: 0
+  - X:
+      Frequency: 3.38
+      Amplitude: 0.78
+      Constant: 0
+    Y:
+      Frequency: 6.915
+      Amplitude: 0.55
+      Constant: 0
+    Z:
+      Frequency: 4.7275
+      Amplitude: 0.28
+      Constant: 0

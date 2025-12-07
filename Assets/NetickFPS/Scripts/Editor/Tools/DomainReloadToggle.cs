@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class DomainReloadToggle
 {
-    [MenuItem("Tools/Toggle Domain Reload")]
+    [MenuItem("Tools/Misc/Toggle Domain Reload")]
     public static void Toggle()
     {
         var current = EditorSettings.enterPlayModeOptions.HasFlag(EnterPlayModeOptions.DisableDomainReload);

@@ -2185,7 +2185,7 @@ MonoBehaviour:
   Children: []
   PrefabIndex: -1
   _PrefabId: -1
-  _SceneId: -1610038728
+  _SceneId: 1010057771
   _RuntimeSceneId: -1
 --- !u!114 &7409207666542332931
 MonoBehaviour:
@@ -2266,8 +2266,8 @@ MonoBehaviour:
   AccelerationRate: 25
   JumpStrength: 5
   GravityAcceleration: -9.81
-  _sensX: 1
-  _sensY: -1
+  _sensX: 5
+  _sensY: -5
   _lookSmoothTime: 0.05
   _useAcceleration: 0
   _accelerationCurve:
@@ -5088,7 +5088,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1316546299352084186}
-  - {fileID: 3020275943454209882}
   m_Father: {fileID: 6688320093897855614}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4364976021490167929
@@ -8252,37 +8251,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &8258264932250241745
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3020275943454209882}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3020275943454209882
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8258264932250241745}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.4668622, y: -0.53107417, z: 0.46686217, w: 0.53107417}
-  m_LocalPosition: {x: 0.9871415, y: -0.12922923, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 3589233798143969816}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8262857965780492590
 GameObject:
   m_ObjectHideFlags: 0
