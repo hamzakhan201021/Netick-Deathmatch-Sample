@@ -175,8 +175,8 @@ public class FpsAnimationIK : MonoBehaviour
 
 
     [Header("Character Hand Bones")]
-    [SerializeField] private HandIKTargets _leftHand;
-    [SerializeField] private HandIKTargets _rightHand;
+    [SerializeField] public HandIKTargets _leftHand;
+    [SerializeField] public HandIKTargets _rightHand;
 
     [Header("Targets")]
     [SerializeField] public HandIKTargets _leftHandT;
@@ -233,7 +233,45 @@ public class FpsAnimationIK : MonoBehaviour
     {
         if (!_useFinger) return;
 
+        _rightHand.ThumbProximal.rotation = _rightHandT.ThumbProximal.rotation * Quaternion.Euler(_rightOffsets.ThumbProximal);
+        _rightHand.ThumbIntermediate.rotation = _rightHandT.ThumbIntermediate.rotation * Quaternion.Euler(_rightOffsets.ThumbIntermediate);
+        _rightHand.ThumbDistal.rotation = _rightHandT.ThumbDistal.rotation * Quaternion.Euler(_rightOffsets.ThumbDistal);
+
         _rightHand.IndexProximal.rotation = _rightHandT.IndexProximal.rotation * Quaternion.Euler(_rightOffsets.IndexProximal);
+        _rightHand.IndexIntermediate.rotation = _rightHandT.IndexIntermediate.rotation * Quaternion.Euler(_rightOffsets.IndexIntermediate);
+        _rightHand.IndexDistal.rotation = _rightHandT.IndexDistal.rotation * Quaternion.Euler(_rightOffsets.IndexDistal);
+
+        _rightHand.MiddleProximal.rotation = _rightHandT.MiddleProximal.rotation * Quaternion.Euler(_rightOffsets.MiddleProximal);
+        _rightHand.MiddleIntermediate.rotation = _rightHandT.MiddleIntermediate.rotation * Quaternion.Euler(_rightOffsets.MiddleIntermediate);
+        _rightHand.MiddleDistal.rotation = _rightHandT.MiddleDistal.rotation * Quaternion.Euler(_rightOffsets.MiddleDistal);
+
+        _rightHand.RingProximal.rotation = _rightHandT.RingProximal.rotation * Quaternion.Euler(_rightOffsets.RingProximal);
+        _rightHand.RingIntermediate.rotation = _rightHandT.RingIntermediate.rotation * Quaternion.Euler(_rightOffsets.RingIntermediate);
+        _rightHand.RingDistal.rotation = _rightHandT.RingDistal.rotation * Quaternion.Euler(_rightOffsets.RingDistal);
+
+        _rightHand.LittleProximal.rotation = _rightHandT.LittleProximal.rotation * Quaternion.Euler(_rightOffsets.LittleProximal);
+        _rightHand.LittleIntermediate.rotation = _rightHandT.LittleIntermediate.rotation * Quaternion.Euler(_rightOffsets.LittleIntermediate);
+        _rightHand.LittleDistal.rotation = _rightHandT.LittleDistal.rotation * Quaternion.Euler(_rightOffsets.LittleDistal);
+
+        _leftHand.ThumbProximal.rotation = _leftHandT.ThumbProximal.rotation * Quaternion.Euler(_leftOffsets.ThumbProximal);
+        _leftHand.ThumbIntermediate.rotation = _leftHandT.ThumbIntermediate.rotation * Quaternion.Euler(_leftOffsets.ThumbIntermediate);
+        _leftHand.ThumbDistal.rotation = _leftHandT.ThumbDistal.rotation * Quaternion.Euler(_leftOffsets.ThumbDistal);
+
+        _leftHand.IndexProximal.rotation = _leftHandT.IndexProximal.rotation * Quaternion.Euler(_leftOffsets.IndexProximal);
+        _leftHand.IndexIntermediate.rotation = _leftHandT.IndexIntermediate.rotation * Quaternion.Euler(_leftOffsets.IndexIntermediate);
+        _leftHand.IndexDistal.rotation = _leftHandT.IndexDistal.rotation * Quaternion.Euler(_leftOffsets.IndexDistal);
+
+        _leftHand.MiddleProximal.rotation = _leftHandT.MiddleProximal.rotation * Quaternion.Euler(_leftOffsets.MiddleProximal);
+        _leftHand.MiddleIntermediate.rotation = _leftHandT.MiddleIntermediate.rotation * Quaternion.Euler(_leftOffsets.MiddleIntermediate);
+        _leftHand.MiddleDistal.rotation = _leftHandT.MiddleDistal.rotation * Quaternion.Euler(_leftOffsets.MiddleDistal);
+
+        _leftHand.RingProximal.rotation = _leftHandT.RingProximal.rotation * Quaternion.Euler(_leftOffsets.RingProximal);
+        _leftHand.RingIntermediate.rotation = _leftHandT.RingIntermediate.rotation * Quaternion.Euler(_leftOffsets.RingIntermediate);
+        _leftHand.RingDistal.rotation = _leftHandT.RingDistal.rotation * Quaternion.Euler(_leftOffsets.RingDistal);
+
+        _leftHand.LittleProximal.rotation = _leftHandT.LittleProximal.rotation * Quaternion.Euler(_leftOffsets.LittleProximal);
+        _leftHand.LittleIntermediate.rotation = _leftHandT.LittleIntermediate.rotation * Quaternion.Euler(_leftOffsets.LittleIntermediate);
+        _leftHand.LittleDistal.rotation = _leftHandT.LittleDistal.rotation * Quaternion.Euler(_leftOffsets.LittleDistal);
     }
 
     #region Animator SetBoneLocalRotation Method, doesn't produce retargetable result
