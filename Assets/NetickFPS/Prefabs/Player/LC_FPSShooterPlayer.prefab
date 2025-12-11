@@ -2269,7 +2269,7 @@ MonoBehaviour:
   _sensX: 5
   _sensY: -5
   _lookSmoothTime: 0.05
-  _useAcceleration: 0
+  _useAcceleration: 1
   _accelerationCurve:
     serializedVersion: 2
     m_Curve:
@@ -2329,7 +2329,8 @@ MonoBehaviour:
     m_Bits: 128
   _magSize: 30
   ReloadTime: 1
-  <GunTimer>k__BackingField: 0
+  <LastShotTickNetworked>k__BackingField:
+    Value: 0
   <ReloadTimer>k__BackingField: 0
   <IsFiring>k__BackingField:
     RawValue: 0
@@ -6115,7 +6116,7 @@ MonoBehaviour:
   <StateValueSmooth>k__BackingField: 0
   <GroundedValueSmooth>k__BackingField: 0
   <timeOff>k__BackingField: 0
-  EnableSyncSystem: 0
+  EnableSyncSystem: 1
 --- !u!114 &60133863258781120
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -26,7 +26,37 @@ public class PlayerShootingController : NetworkBehaviour
     [SerializeField] private float ReloadTime = 1;
 
     // Networked Vars
-    [Networked] public float GunTimer { get; set; } = 0;
+    // [Networked] public float GunTimer { get; set; } = 0;
+
+    // REPLACEMENT FOR GUN TIMER CODE TESTING IN PROGRESS
+    private Tick _localLastShotTick;
+
+
+    private Tick LastShotTick
+    {
+        get
+        {
+            if (InputSource != null)
+                return LastShotTickNetworked;
+            else
+                return _localLastShotTick;
+
+        }
+        set
+        {
+            if (InputSource != null)
+                LastShotTickNetworked = value;
+            else
+                _localLastShotTick = value;
+        }
+    }
+
+    // Networked Properties --------------------------------------------------------------------------
+    [Networked(relevancy: Relevancy.InputSource)]
+    public Tick LastShotTickNetworked { get; set; }
+
+    // END TEST
+
     [Networked] public float ReloadTimer { get; set; } = 0;
 
     [Networked] public NetworkBool IsFiring { get; set; } = false;
@@ -168,14 +198,14 @@ public class PlayerShootingController : NetworkBehaviour
     {
         if (FetchInput(out PlayerInput input))
         {
-            if (GunTimer > 0)
-            {
-                GunTimer -= Sandbox.FixedDeltaTime;
-            }
-            else if (GunTimer < 0)
-            {
-                GunTimer = 0;
-            }
+            // if (GunTimer > 0)
+            // {
+            //     GunTimer -= Sandbox.FixedDeltaTime;
+            // }
+            // else if (GunTimer < 0)
+            // {
+            //     GunTimer = 0;
+            // }
 
             IsFiring = false;
 
@@ -183,7 +213,9 @@ public class PlayerShootingController : NetworkBehaviour
             {
                 if (CanShoot())
                 {
-                    GunTimer = _shotCoolDown;
+                    LastShotTick = Sandbox.Tick;
+
+                    // GunTimer = _shotCoolDown;
                     IsFiring = true;
 
                     CurrentAmmo -= 1;
@@ -428,8 +460,8 @@ public class PlayerShootingController : NetworkBehaviour
 
                 // bool useInterpData = LagCompensationSystem.LagCompSettings.UseInterpData;
 
-                if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance, 
-                                useInterpData, out ColliderCastHit hit, out HitColliderCollection collection, 
+                if (ColliderCastSystem.ColliderCastTransformWithExclusion(ray.origin, ray.direction, _maxDistance,
+                                useInterpData, out ColliderCastHit hit, out HitColliderCollection collection,
                                 out int index, _hitColliderCollection, false))
                 {
                     HitColliderGeneric col = collection.GetHitColliderAtIndex(index);
@@ -528,13 +560,18 @@ public class PlayerShootingController : NetworkBehaviour
 
     private bool CanShoot()
     {
-        return GunTimer <= 0 && CurrentAmmo != 0 && !IsReloading;
+        // return GunTimer <= 0 && CurrentAmmo != 0 && !IsReloading;
+        
+        var isTimeToShot  = Sandbox.TickToTime(Sandbox.Tick - LastShotTick) * Time.timeScale >= _shotCoolDown;
+        return isTimeToShot && CurrentAmmo != 0 && !IsReloading;
     }
 
     // TODO maybe we could use can shoot as one check within
     private bool CanReload()
     {
-        return GunTimer <= 0 && ReloadTimer <= 0 && CurrentAmmo < _magSize && TotalAmmo != 0 && !IsReloading;
+        // return GunTimer <= 0 && ReloadTimer <= 0 && CurrentAmmo < _magSize && TotalAmmo != 0 && !IsReloading;
+        var isTimeToShot  = Sandbox.TickToTime(Sandbox.Tick - LastShotTick) * Time.timeScale >= _shotCoolDown;
+        return isTimeToShot && ReloadTimer <= 0 && CurrentAmmo < _magSize && TotalAmmo != 0 && !IsReloading;
     }
 
     private void UpdateWeaponUI()

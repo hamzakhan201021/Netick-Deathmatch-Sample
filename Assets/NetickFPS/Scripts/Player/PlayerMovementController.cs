@@ -53,7 +53,7 @@ public class PlayerMovementController : NetworkedCharacterController
     private Vector2 _camAngles;
     private Vector2 _smoothedLook;
     private Vector2 _lookVel;
-    [Networked][Smooth] public Vector2 YawPitch { get; set; }
+    [Networked(precision:0.00001f)][Smooth] public Vector2 YawPitch { get; set; }
 
     private PlayerInput _lastInput;
 
