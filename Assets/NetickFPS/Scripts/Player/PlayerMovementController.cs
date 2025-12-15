@@ -573,11 +573,11 @@ public class PlayerMovementController : NetworkedCharacterController
         }
     }
 
-    [OnChanged(nameof(YawPitch), invokeDuringResimulation: true)]
-    private void OnYawPitchChanged(OnChangedData onChanged)
-    {
-        ApplyRotations(YawPitch, false);
-    }
+    // [OnChanged(nameof(YawPitch), invokeDuringResimulation: true)]
+    // private void OnYawPitchChanged(OnChangedData onChanged)
+    // {
+    //     ApplyRotations(YawPitch, false);
+    // }
 
     public override void NetworkRender()
     {
